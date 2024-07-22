@@ -1,0 +1,11 @@
+scheming_presets_version: 2
+about: plugin-specific presets
+about_url: http://github.com/ckan/ckanext-scheming#preset
+presets:
+
+  - preset_name: bulk_custom_preset
+    values:
+      validators: if_empty_same_as(name) unicode_safe
+      form_snippet: large_text.html
+      form_attrs:
+        data-module: slug-preview-target

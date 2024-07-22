@@ -1,0 +1,20 @@
+@use "sass:map";
+@use "mixins" as m;
+@use "variables" as v;
+
+html {
+    font-size: var(--bulk-mobile-font-size);
+
+    @include m.breakpoint(md) {
+        font-size: var(--bulk-desktop-font-size);
+    }
+}
+
+body {
+    font-family: var(--bulk-font-main);
+}
+
+:focus,
+:focus-visible {
+    outline: var(--bulk-color-outline) auto 1px;
+}

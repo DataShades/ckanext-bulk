@@ -1,0 +1,115 @@
+{% extends "page.html" %}
+
+{% block primary_content_inner %}
+    <h1>Hello, {{ word }}!</h1>
+    <p>
+        Nibh tellus molestie nunc, non blandit massa enim nec dui nunc mattis
+        enim ut tellus elementum sagittis vitae et leo duis ut diam quam
+        nulla. Urna neque viverra justo, nec?
+    </p>
+    <div class="my-2">
+        {% snippet "heh/snippets/tom_select.html", options=[[1, "hello"], [2, "world"]], sort_direction="desc" %}
+    </div>
+
+
+
+<div class="my-2">
+    <button type="button" class="btn btn-default"
+        data-module="bulk-swal"
+        data-module-text="Proin neque massa, cursus ut, gravida ut, lobortis eget, lacus."
+        data-module-icon="info"
+    >Alert <3</button>
+</div>
+
+<div class="my-2">
+    <ul data-module="bulk-sortable" style="cursor: grab;">
+        <li>Iaculis nunc sed augue lacus.</li>
+        <li>Commodo elit, at imperdiet dui.</li>
+        <li>Integer eget aliquet nibh praesent?</li>
+        <li>Tellus in metus vulputate eu.</li>
+        <li>Duis convallis convallis tellus, id!</li>
+    </ul>
+</div>
+
+<div class="my-2">
+
+    <div data-module="bulk-izi-modal"
+        data-module-title="Hello"
+        data-module-subtitle="world"
+    >
+        <div data-izi-modal>
+            Lorem ipsum dolor sit amet, consectetuer adipiscing elit.  Donec
+            hendrerit tempor tellus.  Donec pretium posuere tellus.  Proin quam
+            nisl, tincidunt et, mattis eget, convallis nec, purus.  Cum sociis
+            natoque penatibus et magnis dis parturient montes, nascetur ridiculus
+            mus.  Nulla posuere.  Donec vitae dolor.  Nullam tristique diam non
+            turpis.  Cras placerat accumsan nulla.  Nullam rutrum.  Nam vestibulum
+            accumsan nisl.
+        </div>
+
+        <button type="button" class="btn btn-default" data-izi-trigger>Modal</button>
+    </div>
+</div>
+
+<div class="my-2">
+    <button class="btn btn-default" data-module="bulk-izi-toast"
+        data-module-title="Hello world!"
+        data-module-message="Praesent fermentum tempor tellus."
+    >Toast</button>
+
+</div>
+
+<div class="my-2">
+    <div data-module="bulk-slick"
+        data-module-dots="true" data-module-infinite="true" data-module-slides-per-row="3"
+        data-module-autoplay="true"
+    >
+        
+            <img alt="Random image" src="https://picsum.photos/seed/1/200/300" class="img-thumbnail" />
+        
+            <img alt="Random image" src="https://picsum.photos/seed/2/200/300" class="img-thumbnail" />
+        
+            <img alt="Random image" src="https://picsum.photos/seed/3/200/300" class="img-thumbnail" />
+        
+            <img alt="Random image" src="https://picsum.photos/seed/4/200/300" class="img-thumbnail" />
+        
+            <img alt="Random image" src="https://picsum.photos/seed/5/200/300" class="img-thumbnail" />
+        
+            <img alt="Random image" src="https://picsum.photos/seed/6/200/300" class="img-thumbnail" />
+        
+    </div>
+</div>
+
+<div class="my-2">
+    <input name="" type="text" value="" data-module="bulk-datepicker" class="form-control" />
+
+</div>
+<div class="my-2">
+    <ul data-module="bulk-scrollbar" style="max-height: 5em; overflow: hidden;">
+        <li>Ac felis donec et odio pellentesque diam volutpat.</li>
+        <li>At tempor commodo, ullamcorper a lacus vestibulum sed.</li>
+        <li>Condimentum id venenatis a, condimentum vitae sapien pellentesque.</li>
+        <li>Orci phasellus egestas tellus rutrum tellus pellentesque eu?</li>
+        <li>Luctus accumsan tortor posuere ac ut consequat semper?</li>
+        <li>Ut consequat semper viverra nam libero justo, laoreet.</li>
+        <li>Odio aenean sed adipiscing diam donec adipiscing tristique?</li>
+        <li>Habitant morbi tristique senectus et netus et malesuada!</li>
+        <li>Ultricies mi, quis hendrerit dolor magna eget est!</li>
+        <li>Blandit libero volutpat sed cras ornare arcu dui!</li>
+        <li>Dolor, sed viverra ipsum nunc aliquet bibendum enim?</li>
+        <li>Et malesuada fames ac turpis egestas integer eget!</li>
+        <li>Odio ut sem nulla pharetra diam sit amet?</li>
+        <li>Imperdiet proin fermentum leo vel orci porta non.</li>
+        <li>Fermentum posuere urna nec tincidunt praesent semper feugiat.</li>
+        <li>Tincidunt lobortis feugiat vivamus at augue eget arcu!</li>
+        <li>Turpis massa tincidunt dui ut ornare lectus sit.</li>
+        <li>Praesent semper feugiat nibh sed pulvinar proin gravida!</li>
+        <li>Pretium quam vulputate dignissim suspendisse in est ante.</li>
+        <li>Est pellentesque elit ullamcorper dignissim cras tincidunt lobortis?</li>
+    </ul>
+
+</div>
+
+
+{% endblock %}
+

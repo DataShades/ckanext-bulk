@@ -1,0 +1,25 @@
+.toolbar {
+    .breadcrumb {
+        li {
+            a {
+            }
+
+            &.home {
+                i {
+                }
+
+                span {
+                }
+            }
+
+            &.active {
+                a {
+                }
+            }
+
+            // arrow >
+            &:before {
+            }
+        }
+    }
+}

@@ -1,0 +1,28 @@
+@use "vendor";
+@use "fonts";
+@use "cssvars";
+
+@use "global";
+
+// Elements ///////////////////////////////////////////////////////////////////
+@use "elements/breadcrumb";
+@use "elements/buttons";
+@use "elements/forms";
+@use "elements/pagination";
+@use "elements/tables";
+
+// Global components //////////////////////////////////////////////////////////
+@use "header";
+@use "footer";
+
+// Specific pages /////////////////////////////////////////////////////////////
+@use "pages/search";
+// @use "pages/group";
+// @use "pages/organization";
+// @use "pages/dataset";
+// @use "pages/admin";
+// @use "pages/home";
+
+// Forms //////////////////////////////////////////////////////////////////////
+// @use "forms/package_form";
+// @use "forms/user_edit";

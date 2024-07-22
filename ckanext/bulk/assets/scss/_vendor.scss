@@ -1,0 +1,9 @@
+@use "tom-select/src/scss/tom-select";
+// @use "tom-select/src/scss/tom-select.default";
+@use "sweetalert2/src/scss/theming";
+
+@use "slick-carousel/slick/slick";
+@use "slick-carousel/slick/slick-theme" with (
+    $slick-font-path: "/slick-fonts/",
+    $slick-loader-path: "/",
+);

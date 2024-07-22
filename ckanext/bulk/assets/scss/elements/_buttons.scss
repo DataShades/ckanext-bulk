@@ -1,0 +1,26 @@
+@use "mixins" as m;
+@use "utils" as u;
+@use "variables" as v;
+
+.btn {
+    &.btn-primary {
+        &:hover,
+        &:active,
+        &:focus {
+
+        }
+    }
+
+
+    &.btn-default {
+    }
+
+    &.btn-link {
+    }
+
+    &.btn-white {
+    }
+
+    &.btn-sm {
+    }
+}

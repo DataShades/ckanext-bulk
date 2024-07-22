@@ -1,0 +1,65 @@
+{
+    "strict": true,
+    "debug": true,
+
+    "sp": {
+        "entityId": "<SP_ENTITY_ID>",
+        "assertionConsumerService": {
+            "url": "<SITE_URL>/sso/post",
+            "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+        },
+        "singleLogoutService": {
+            "url": "<SITE_URL>/slo/post",
+            "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+        },
+        "NameIDFormat": "urn:oasis:names:tc:SAML:2.0:nameid-format:transient",
+        "x509cert": "",
+        "privateKey": ""
+    },
+
+    "idp": {
+        "entityId": "<IDP_ENTITY_ID>",
+        "singleSignOnService": {
+            "url": "<SSO_URL>",
+            "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+        },
+        "singleLogoutService": {
+            "url": "<SLO_URL>",
+            "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+        },
+        "x509cert": "<CERT>"
+    },
+
+    "security": {
+        "requestedAuthnContext": false,
+        "nameIdEncrypted": false,
+        "authnRequestsSigned": false,
+        "logoutRequestSigned": false,
+        "logoutResponseSigned": false,
+        "signMetadata": false,
+        "wantMessagesSigned": false,
+        "wantAssertionsSigned": false,
+        "wantNameId" : true,
+        "wantNameIdEncrypted": false,
+        "wantAssertionsEncrypted": false,
+        "signatureAlgorithm": "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
+        "digestAlgorithm": "http://www.w3.org/2000/09/xmldsig#sha1"
+    },
+    "contactPerson": {
+        "technical": {
+            "givenName": "technical_name",
+            "emailAddress": "technical@example.com"
+        },
+        "support": {
+            "givenName": "support_name",
+            "emailAddress": "support@example.com"
+        }
+    },
+    "organization": {
+        "en-US": {
+            "name": "sp_test",
+            "displayname": "SP test",
+            "url": "http://sp.example.com"
+        }
+    }
+}

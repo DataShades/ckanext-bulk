@@ -1,0 +1,11 @@
+@use "mixins" as m;
+@use "utils" as u;
+@use "variables" as v;
+
+.site-footer {
+    .nav .nav-item .nav-link {
+
+        &:hover, &:focus, &:active {
+        }
+    }
+}

@@ -1,0 +1,36 @@
+{
+    "dependencies": {
+        "cypress": "^13.13.0",
+        "daterangepicker": "^3.1.0",
+        "gulp": "^5.0.0",
+        "gulp-clean-css": "^4.3.0",
+        "gulp-if": "^3.0.0",
+        "gulp-postcss": "^10.0.0",
+        "gulp-sass": "^5.1.0",
+        "gulp-sourcemaps": "^3.0.0",
+        "gulp-touch-fd": "^2.0.0",
+        "htmx.org": "^1.9.12",
+        "hyperscript.org": "^0.9.12",
+        "izimodal": "^1.6.1",
+        "izitoast": "^1.4.0",
+        "overlayscrollbars": "^2.9.2",
+        "postcss": "^8.4.39",
+        "postcss-sort-media-queries": "^5.2.0",
+        "pyright": "^1.1.370",
+        "sass": "^1.77.6",
+        "slick-carousel": "^1.8.1",
+        "sortablejs": "^1.15.2",
+        "sweetalert2": "^11.12.2",
+        "tom-select": "^2.3.0",
+        "typescript": "^5.5.3"
+    },
+    "devDependencies": {
+        "@types/jquery": "^3.5.29"
+    },
+    "scripts": {
+        "build:ts": "tsc",
+        "dev:ts": "tsc -w",
+        "dev": "DEBUG=1 gulp watch",
+        "build": "gulp build"
+    }
+}

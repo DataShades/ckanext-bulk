@@ -1,0 +1,16 @@
+version: 1
+groups:
+    - annotation: bulk configuration
+      options:
+
+          - key: ckanext.bulk.option.name
+            default: 10
+            type: int
+            description: |
+                Integer placerat tristique nisl.
+
+          - key: ckanext.bulk.multivalued.option
+            type: list
+            editable: true
+            description: |
+                Another option that will be parsed as a list of words.

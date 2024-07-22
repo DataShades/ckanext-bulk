@@ -1,0 +1,38 @@
+default_install_hook_types:
+  - pre-commit
+  - pre-push
+  - commit-msg
+
+repos:
+  # - repo: https://github.com/thoughtworks/talisman
+  #   rev: 'v1.28.0'  # Update me!
+  #   hooks:
+  #     # both pre-commit and pre-push supported
+  #     # -   id: talisman-push
+  #     - id: talisman-commit
+  #       entry: cmd --githook pre-commit
+
+  # - repo: https://github.com/gitleaks/gitleaks
+  #   rev: v8.18.4
+  #   hooks:
+  #     - id: gitleaks
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: end-of-file-fixer
+        stages: [pre-commit]
+      - id: trailing-whitespace
+        stages: [pre-commit]
+      - id: debug-statements
+        stages: [pre-push]
+
+  ## Ruff
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.5.0
+    hooks:
+      - id: ruff
+        args: [--fix]
+        stages: [pre-commit]
+      - id: ruff-format
+        stages: [pre-commit]

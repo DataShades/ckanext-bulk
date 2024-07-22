@@ -1,0 +1,21 @@
+@use "sass:map";
+
+// Use maps to group related values that are not used often.
+$breakpoints: (
+  xs: 0,
+  sm: 576px,
+  md: 768px,
+  lg: 992px,
+  xl: 1200px,
+);
+
+// use map for values that are accessed only once or with values that are
+// processed in a loop.
+$pallette: (
+    "red": #ff0000,
+    "blue": #0000ff,
+    "navy": #000080,
+    "white": #ffffff,
+    "black": #000000,
+    "gray": #cccccc,
+);

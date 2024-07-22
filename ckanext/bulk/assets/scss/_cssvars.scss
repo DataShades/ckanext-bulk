@@ -1,0 +1,20 @@
+@use "sass:map";
+@use "variables" as v;
+
+// if you never use variable inside SASS expression, consider using
+// CSS-variables instead. CSS-variables are great for dynamic theme changes and
+// do not visibly affect rendering performance in majority of scenarios.
+:root {
+    --bulk-mobile-font-size: 14px;
+    --bulk-desktop-font-size: 16px;
+
+    --bulk-font-main: "Noto Sans", serif;
+    --bulk-font-heading: "Bitter", serif;
+
+    --bulk-color-brand: #{map.get(v.$pallette, "blue")};
+    --bulk-color-accent: #{map.get(v.$pallette, "red")};
+    --bulk-color-default: #{map.get(v.$pallette, "white")};
+    --bulk-color-link: #{map.get(v.$pallette, "navy")};
+    --bulk-color-text: #{map.get(v.$pallette, "black")};
+    --bulk-color-outline: #{map.get(v.$pallette, "gray")};
+}

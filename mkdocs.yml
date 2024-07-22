@@ -1,0 +1,76 @@
+site_name: ckanext-bulk
+site_url: https://Link Digital.github.io/ckanext-bulk/
+
+repo_url:  https://github.com/Link Digital/ckanext-bulk
+
+markdown_extensions:
+  - pymdownx.snippets
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.blocks.admonition
+  - pymdownx.blocks.details
+  - pymdownx.blocks.tab:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+plugins:
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_root_full_path: false
+            show_root_toc_entry: false
+            show_symbol_type_heading: true
+            show_source: false
+            docstring_section_style: spacy
+  - search:
+      separator: '[\s\-\.\_]+'
+
+watch:
+  - README.md
+
+theme:
+  name: material
+  logo: img/logo.png
+  favicon: img/favicon.ico
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+
+  features:
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.instant.progress
+    - navigation.footer
+    - navigation.indexes
+    - navigation.top
+    - content.code.copy
+    - content.code.select
+    - content.code.annotate
+
+nav:
+  - index.md
