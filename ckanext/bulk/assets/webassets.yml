@@ -11,11 +11,10 @@ bulk-js:
 
     - scripts/bulk.js # global plugin scripts
     - scripts/bulk-manager-form.js
+    - scripts/bulk-tom-select.js
 
-    - scripts/bulk-tom-select.js # tom-select adapter
-    - scripts/bulk-swal.js # sweetalert adapter
-    - scripts/bulk-izi-modal.js # iziModal adapter
-    - scripts/bulk-izi-toast.js # iziToast adapter
+    # - scripts/bulk-izi-modal.js
+    # - scripts/bulk-izi-toast.js
 
   extra:
     preload:

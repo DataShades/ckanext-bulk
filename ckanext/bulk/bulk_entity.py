@@ -12,12 +12,27 @@ class FilterItem(TypedDict):
     value: str
 
 
+class FieldItem(TypedDict):
+    value: str
+    text: str
+
+
+class EntityMissingError(Exception):
+    def __init__(self, entity_type: str):
+        super().__init__(f"Entity type {entity_type} not found")
+
+
+class SchemingEntityMissingError(Exception):
+    def __init__(self, entity_type: str, object_type: str):
+        super().__init__(f"Schema not found for {entity_type} {object_type}")
+
+
 class Entity:
     entity_type = ""
 
     @staticmethod
     @abstractmethod
-    def get_fields() -> list[str]:
+    def get_fields() -> list[FieldItem]:
         pass
 
     @staticmethod
@@ -29,11 +44,12 @@ class Entity:
 class SchemingEntity(Entity):
     entity_type = ""
 
-    def _get_schema(self, entity_type: str, object_type: str) -> dict[str, Any]:
+    @staticmethod
+    def get_schema(entity_type: str, object_type: str) -> dict[str, Any]:
         schema = tk.h.scheming_get_schema(entity_type, object_type)
 
         if not schema:
-            raise ValueError(f"Schema not found for {entity_type} {object_type}")
+            raise SchemingEntityMissingError(entity_type, object_type)
 
         return schema
 
@@ -42,33 +58,28 @@ class DatasetEntity(SchemingEntity):
     entity_type = "dataset"
 
     @staticmethod
-    def get_fields() -> list[str]:
-        schema = self._get_schema("dataset", self.entity_type)
+    def get_fields() -> list[FieldItem]:
+        schema = SchemingEntity.get_schema("dataset", DatasetEntity.entity_type)
 
-        import ipdb
-
-        ipdb.set_trace()
+        return [
+            {
+                "value": field["field_name"],
+                "text": field["label"],
+            }
+            for field in schema.get("dataset_fields", [])
+        ]
 
     @staticmethod
     def search_entities_by_filters(filters: list[FilterItem]) -> list[dict[str, Any]]:
-        """
+        """Search entities by the provided filters.
+
         Example of filters:
         [
             {'field': 'author', 'operator': 'is', 'value': 'Alex'},
             {'field': 'author', 'operator': 'is_not', 'value': 'John'},
+            {'field': 'title', 'operator': 'contains', 'value': 'data'},
         ]
-
-        Possible operators:
-        {"value": "is", "text": "IS"},
-        {"value": "is_not", "text": "IS NOT"},
-        {"value": "contains", "text": "CONTAINS"},
-        {"value": "does_not_contain", "text": "DOES NOT CONTAIN"},
-        {"value": "starts_with", "text": "STARTS WITH"},
-        {"value": "ends_with", "text": "ENDS WITH"},
-        {"value": "is_empty", "text": "IS EMPTY"},
-        {"value": "is_not_empty", "text": "IS NOT EMPTY"},
         """
-
         fq_list = []
 
         for filter in filters:
@@ -87,18 +98,16 @@ class DatasetEntity(SchemingEntity):
 
         fq = " AND ".join(fq_list)
 
-        result = tk.get_action("package_search")({"ignore_auth": True}, {"fq": fq, "include_private": True})
-
-        print(result["results"])
-
-        return result["results"]
+        return tk.get_action("package_search")(
+            {"ignore_auth": True}, {"fq": fq, "include_private": True}
+        )["results"]
 
 
 class OrganizationEntity(SchemingEntity):
     entity_type = "organization"
 
     def get_fields(self) -> list[str]:
-        schema = self._get_schema("organization", self.entity_type)
+        schema = SchemingEntity.get_schema("organization", self.entity_type)
 
         return list(schema["fields"].keys())
 
@@ -107,7 +116,7 @@ class GroupEntity(SchemingEntity):
     entity_type = "group"
 
     def get_fields(self) -> list[str]:
-        schema = self._get_schema("group", self.entity_type)
+        schema = SchemingEntity.get_schema("group", self.entity_type)
 
         return list(schema["fields"].keys())
 
@@ -125,4 +134,4 @@ def get_entity_manager(entity_type: str) -> type[Entity]:
         if et.entity_type == entity_type:
             return et
 
-    raise ValueError(f"Entity type {entity_type} not found")
+    raise EntityMissingError(entity_type)

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Any
 
-import ckan.plugins.toolkit as tk
 from ckan.types import Context
 
 

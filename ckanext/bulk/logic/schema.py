@@ -26,3 +26,17 @@ def bulk_get_entities_by_filters(
             "value": [not_empty, unicode_safe],
         },
     }
+
+
+@validator_args
+def bulk_search_fields(
+    not_empty: types.Validator,
+    unicode_safe: types.Validator,
+    one_of: types.Validator,
+) -> types.Schema:
+    entity_types = [v.entity_type for v in get_entity_types().values()]
+
+    return {
+        "entity_type": [not_empty, unicode_safe, one_of(entity_types)],  # type: ignore
+        "query": [not_empty, unicode_safe],
+    }

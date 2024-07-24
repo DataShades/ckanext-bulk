@@ -21,8 +21,16 @@
     }
 
     .ts-wrapper {
+        .ts-control {
+            min-height: 36px;
+        }
+
         .ts-dropdown {
             margin: 0;
+        }
+
+        input:focus-visible {
+            outline: unset;
         }
     }
 

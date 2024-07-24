@@ -1,12 +1,9 @@
 from __future__ import annotations
 
-from typing import Any, cast
-
 from flask import Blueprint
 from flask.views import MethodView
 
 import ckan.plugins.toolkit as tk
-from ckan.logic import parse_params
 
 __all__ = ["bp"]
 
@@ -46,7 +43,7 @@ class BulkManagerView(MethodView):
         return tk.render(self.template, {"data": {}, "errors": {}})
 
     def post(self):
-        params = parse_params(tk.request.form)
+        # params = parse_params(tk.request.form)
 
         return tk.redirect_to("bulk.manager")
 

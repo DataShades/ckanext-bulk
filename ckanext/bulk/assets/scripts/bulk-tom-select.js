@@ -13,22 +13,31 @@ ckan.module("tom-select", function () {
         // `this.sandbox.bulk.nestedOptions` and we receive
         // `{helloWorld: {byeWorld: ...}}`.
         options: {
-            valueField: 'label',
-            labelField: 'label',
+            valueField: 'value',
+            labelField: 'text',
             plugins: ['dropdown_input'],
+            customRender: false,
             load: function (query, callback) {
-                var url = 'https://api.github.com/search/repositories?q=' + encodeURIComponent(query);
+                var url = '/api/action/bulk_search_fields?query=' + encodeURIComponent(query) + "&entity_type=dataset";
                 fetch(url)
                     .then(response => response.json())
                     .then(json => {
-                        callback(json.items);
+                        callback(json.result);
                     }).catch(() => {
                         callback();
                     });
             },
-            render: {
-                option: function (item, escape) {
-                    console.log(item);
+            render: {},
+        },
+
+        initialize() {
+            if (typeof TomSelect === "undefined") {
+                console.error("[bulk-tom-select] TomSelect library is not loaded");
+                return
+            }
+
+            if (this.options.customRender) {
+                this.options.render.option = function (item, escape) {
                     return `
                     <div class="py-2 d-flex">
                         <div class="mb-1">
@@ -40,25 +49,10 @@ ckan.module("tom-select", function () {
                     </div>
                     `;
                 }
-            },
-        },
-
-        initialize() {
-            // stop execution if dependency is missing.
-            if (typeof TomSelect === "undefined") {
-                // reporting the source of the problem is always a good idea.
-                console.error("[bulk-tom-select] TomSelect library is not loaded");
-                return
             }
 
-            // tom-select has a number of nested options. We are using
-            // `nestedOptions` helper defined inside `bulk.js` to
-            // convert flat options of CKAN JS module into nested object.
             const options = this.sandbox["bulk"].nestedOptions(this.options);
 
-            // in this case there is no value in keeping the reference to the
-            // widget. But if you are going to extend this module, sharing
-            // information between methods through `this` is a good choice.
             if (this.el.get(0, {}).tomselect) {
                 return;
             }
