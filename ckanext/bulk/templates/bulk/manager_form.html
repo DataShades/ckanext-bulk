@@ -1,0 +1,49 @@
+{% import 'macros/form.html' as form %}
+{% import 'bulk/form.html' as bulk_form %}
+
+<form action="{{ h.url_for('bulk.manager') }}" method="POST">
+    {{ bulk_form.select('entity_type', label=_('Entity type'), options=h.bulk_entity_options(), error=errors.entity_type, classes=["bulk-select-entity"]) }}
+    {{ bulk_form.select('action', label=_('Action'), options=h.bulk_action_options(), error=errors.action, classes=["bulk-select-action"]) }}
+
+    <div class="filters-list">
+        <h3 class="d-flex justify-content-between">
+            <span>{{_("Filters") }}:</span>
+            <button
+                type="button"
+                class="btn btn-light btn-lg btn-filter-item-add"
+                hx-get="{{ h.url_for('bulk.create_filter_item')}}"
+                hx-trigger="click"
+                hx-target=".filters-list-wrapper"
+                hx-swap="beforeend">
+                <i class="fa fa-plus"></i>
+            </button>
+        </h3>
+
+        <div class="filters-list-wrapper">
+            {% snippet 'bulk/snippets/filter_item.html', data=data, errors=errors %}
+        </div>
+    </div>
+
+    <div class="update-to-fields" style="display: none;">
+        <h3 class="d-flex justify-content-between">
+            <span>{{ _("Update on") }}:</span>
+            <button
+                type="button"
+                class="btn btn-light btn-lg btn-update-item-add"
+                hx-get="{{ h.url_for('bulk.create_update_item')}}"
+                hx-trigger="click"
+                hx-target=".update-to-fields-wrapper"
+                hx-swap="beforeend">
+                <i class="fa fa-plus"></i>
+            </button>
+        </h3>
+
+        <div class="update-to-fields-wrapper">
+            {% snippet 'bulk/snippets/update_item.html', data=data, errors=errors %}
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <button type="button" class="btn btn-primary bulk-submit-form-btn">{{ _("Submit") }}</button>
+    </div>
+</form>

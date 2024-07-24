@@ -2,19 +2,100 @@
 @use "mixins" as m;
 @use "variables" as v;
 
-html {
-    font-size: var(--bulk-mobile-font-size);
+.bulk-manager {
 
-    @include m.breakpoint(md) {
-        font-size: var(--bulk-desktop-font-size);
+    // mask default select to look like tomselect and avoid flashing on init
+    select {
+        width: 100%;
+        height: 36px;
+        border-color: #d0d0d0;
+        border-radius: 3px;
+        padding: 8px;
+        font-size: 13px;
+        line-height: 18px;
+        color: #303030;
+
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
     }
-}
 
-body {
-    font-family: var(--bulk-font-main);
-}
+    .ts-wrapper {
+        .ts-dropdown {
+            margin: 0;
+        }
+    }
 
-:focus,
-:focus-visible {
-    outline: var(--bulk-color-outline) auto 1px;
+    .filters-list {
+        margin-bottom: 2rem;
+
+        .filter-item {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            margin-bottom: 1rem;
+
+            .form-group:nth-child(1) {
+                flex-basis: 35%;
+            }
+
+            .form-group:nth-child(2) {
+                flex-basis: 25%;
+            }
+
+            .form-group:nth-child(3) {
+                flex-basis: 35%;
+            }
+
+            .btn {
+                flex-basis: 5%;
+            }
+
+            .form-group {
+                margin-bottom: 0;
+            }
+        }
+
+        .form-label {
+            display: none;
+        }
+    }
+
+    .update-to-fields {
+        margin-bottom: 2rem;
+
+        .update-field-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+            margin-bottom: 1rem;
+
+            .form-group {
+                margin-bottom: 0;
+            }
+
+            .form-group:nth-child(1) {
+                flex-basis: 48%;
+            }
+
+            .form-group:nth-child(2) {
+                flex-basis: 48%;
+            }
+
+            .btn {
+                flex-basis: 4%;
+            }
+
+            &:last-of-type {
+                .form-group {
+                    margin-bottom: 0;
+                }
+            }
+        }
+
+        .form-label {
+            display: none;
+        }
+    }
 }

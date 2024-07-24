@@ -2,29 +2,20 @@ bulk-js:
   filter: rjsmin
   output: ckanext-bulk/%(version)s-bulk.js
   contents:
-    # - vendor/tom-select.base.min.js # slim version of tom-select
-    - vendor/tom-select.complete.min.js # tom-select with popular plugins
-
-    - vendor/Sortable.js
+    - vendor/tom-select.complete.min.js
     - vendor/sweetalert2.all.js
     - vendor/hyperscript.js
     - vendor/htmx.js
     - vendor/iziModal.js
     - vendor/iziToast.js
-    - vendor/slick.js
-    - vendor/daterangepicker.js
-    - vendor/moment.min.js
-    - vendor/overlayscrollbars.js
 
     - scripts/bulk.js # global plugin scripts
+    - scripts/bulk-manager-form.js
 
     - scripts/bulk-tom-select.js # tom-select adapter
     - scripts/bulk-swal.js # sweetalert adapter
-    - scripts/bulk-sortable.js # sortablejs adapter
     - scripts/bulk-izi-modal.js # iziModal adapter
     - scripts/bulk-izi-toast.js # iziToast adapter
-    - scripts/bulk-datepicker.js # daterangepicker adapter
-    - scripts/bulk-scrollbar.js # overlay scrollbars adapter
 
   extra:
     preload:
@@ -44,8 +35,6 @@ bulk-css:
 
     - vendor/iziModal.css
     - vendor/iziToast.css
-    - vendor/daterangepicker.css
-    - vendor/overlayscrollbars.css
 
     # the main plugin theme
     - styles/bulk.css

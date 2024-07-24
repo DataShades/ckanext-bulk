@@ -1,32 +1,28 @@
 from __future__ import annotations
 
+import ckan.plugins.toolkit as tk
 from ckan import types
 from ckan.logic.schema import validator_args
 
-
-@validator_args
-def get_sum(
-    convert_int: types.Validator,
-    not_empty: types.Validator,
-) -> types.Schema:
-    """Schema for bulk_get_sum action."""
-    return {
-        "left": [not_empty, convert_int],
-        "right": [not_empty, convert_int],
-    }
+from ckanext.bulk.bulk_entity import get_entity_types
 
 
 @validator_args
-def something_create(
+def bulk_get_entities_by_filters(
     not_empty: types.Validator,
     unicode_safe: types.Validator,
-    ignore_empty: types.Validator,
-    convert_to_json_if_string: types.Validator,
-    dict_only: types.Validator,
+    one_of: types.Validator,
 ) -> types.Schema:
-    """Schema for bulk_something_create action."""
+    entity_types = [v.entity_type for v in get_entity_types().values()]
+    actions = [opt["value"] for opt in tk.h.bulk_action_options()]
+    operators = [opt["value"] for opt in tk.h.bulk_operator_options()]
+
     return {
-        "hello": [not_empty, unicode_safe],
-        "world": [not_empty, unicode_safe],
-        "plugin_data": [ignore_empty, convert_to_json_if_string, dict_only],
+        "entity_type": [not_empty, unicode_safe, one_of(entity_types)],  # type: ignore
+        "action": [not_empty, unicode_safe, one_of(actions)],  # type: ignore
+        "filters": {
+            "field": [not_empty, unicode_safe],
+            "operator": [not_empty, unicode_safe, one_of(operators)],  # type: ignore
+            "value": [not_empty, unicode_safe],
+        },
     }

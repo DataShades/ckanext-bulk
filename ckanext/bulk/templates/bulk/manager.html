@@ -1,0 +1,22 @@
+{% extends "page.html" %}
+
+{% block primary_content %}
+    <article class="module">
+        <div class="module-content bulk-manager" data-module="bulk-manager-form">
+            {% snippet 'bulk/manager_form.html', data=data, errors=errors %}
+        </div>
+    </article>
+{% endblock %}
+
+
+{% block secondary_content %}
+    <div class="module module-narrow module-shallow">
+        <h2 class="module-heading">
+            <i class="fa fa-info-circle"></i>
+            {{ _("Bulk update manager") }}
+        </h2>
+        <div class="module-content bulk-info">
+            <p>Entities that will be <u>updated</u>: <b>23</b> </p>
+        </div>
+    </div>
+{% endblock %}

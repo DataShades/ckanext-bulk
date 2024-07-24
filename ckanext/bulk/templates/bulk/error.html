@@ -1,0 +1,13 @@
+{% extends "page.html" %}
+
+{% block main_content %}
+    <h3>Oops! An error happened!</h3>
+    <h2>{{ name }}</h2>
+    <p>
+        {% if content %}
+            {{ content }}
+        {% else %}
+            Not authorized to view this page
+        {% endif %}
+    </p>
+{% endblock %}
