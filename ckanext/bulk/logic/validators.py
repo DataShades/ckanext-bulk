@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 # def bulk_required(value: Any):
 #     """Verify that value is not empty."""
 #     if not value or value is tk.missing:
