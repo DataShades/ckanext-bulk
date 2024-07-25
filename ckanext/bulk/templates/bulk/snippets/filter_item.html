@@ -2,7 +2,7 @@
 {% import 'bulk/form.html' as bulk_form %}
 
 <div class="filter-item bulk-fieldset-item">
-    {{ bulk_form.select('entity_field', label=_('Entity Field'), options=[], error=errors.entity_field, settings={'data-module-placeholder': _("Search for field name"), 'data-module-create': 1}, classes=["bulk-field-select"]) }}
+    {{ form.select('entity_field', label=_('Entity Field'), options=[], error=errors.entity_field, classes=["bulk-field-select"]) }}
     {{ bulk_form.select('operator', label=_('Operator'), options=h.bulk_operator_options(), error=errors.operator, classes=["bulk-operator-select"]) }}
     {{ form.input('value', label=_('Value'), error=errors.value, placeholder="Field value", classes=["bulk-value-input"]) }}
 

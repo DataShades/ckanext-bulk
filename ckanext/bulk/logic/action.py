@@ -6,7 +6,7 @@ import ckan.plugins.toolkit as tk
 from ckan.logic import validate
 from ckan.types import Context
 
-from ckanext.bulk.bulk_entity import get_entity_manager
+from ckanext.bulk.entity_manager import get_entity_manager
 
 from . import schema
 
@@ -19,9 +19,9 @@ def bulk_perform(context: Context, data_dict: dict[str, Any]):
 def bulk_get_entities_by_filters(context: Context, data_dict: dict[str, Any]):
     entity_manager = get_entity_manager(data_dict["entity_type"])
 
-    return {
-        "count": len(entity_manager.search_entities_by_filters(data_dict["filters"]))
-    }
+    return entity_manager.search_entities_by_filters(
+        data_dict["filters"], data_dict["global_operator"]
+    )
 
 
 @tk.side_effect_free

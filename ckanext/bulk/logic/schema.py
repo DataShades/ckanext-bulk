@@ -4,7 +4,7 @@ import ckan.plugins.toolkit as tk
 from ckan import types
 from ckan.logic.schema import validator_args
 
-from ckanext.bulk.bulk_entity import get_entity_types
+from ckanext.bulk.entity_manager import get_entity_managers
 
 
 @validator_args
@@ -12,8 +12,9 @@ def bulk_get_entities_by_filters(
     not_empty: types.Validator,
     unicode_safe: types.Validator,
     one_of: types.Validator,
+    default: types.Validator,
 ) -> types.Schema:
-    entity_types = [v.entity_type for v in get_entity_types().values()]
+    entity_types = [v.entity_type for v in get_entity_managers().values()]
     actions = [opt["value"] for opt in tk.h.bulk_action_options()]
     operators = [opt["value"] for opt in tk.h.bulk_operator_options()]
 
@@ -23,8 +24,9 @@ def bulk_get_entities_by_filters(
         "filters": {
             "field": [not_empty, unicode_safe],
             "operator": [not_empty, unicode_safe, one_of(operators)],  # type: ignore
-            "value": [not_empty, unicode_safe],
+            "value": [default(""), unicode_safe],  # type: ignore
         },
+        "global_operator": [not_empty, unicode_safe, one_of(["AND", "OR"])],  # type: ignore
     }
 
 
@@ -33,10 +35,11 @@ def bulk_search_fields(
     not_empty: types.Validator,
     unicode_safe: types.Validator,
     one_of: types.Validator,
+    default: types.Validator,
 ) -> types.Schema:
-    entity_types = [v.entity_type for v in get_entity_types().values()]
+    entity_types = [v.entity_type for v in get_entity_managers().values()]
 
     return {
         "entity_type": [not_empty, unicode_safe, one_of(entity_types)],  # type: ignore
-        "query": [not_empty, unicode_safe],
+        "query": [default(""), unicode_safe],  # type: ignore
     }

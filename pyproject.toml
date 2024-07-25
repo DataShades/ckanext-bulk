@@ -46,7 +46,11 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "ckanext/bulk/tests*" = ["S", "PL", "ANN"]
 "ckanext/bulk/logic/*" = [
-            "D417", # actions don't describe context and data_dict
+    "D417", # actions don't describe context and data_dict
+]
+"ckanext/bulk/entity_manager.py" = [
+    "C901", # we have kinda complex function here, but can't simplify it
+    "PLR0912" # too much if else statements, but it's ok here
 ]
 
 [tool.ruff.lint.flake8-import-conventions.aliases]

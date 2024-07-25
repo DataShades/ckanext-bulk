@@ -54,7 +54,7 @@ const build = () =>
  * directory.
  */
 const watchStyles = () =>
-  watch(resolve(srcDir, "*.scss"), { ignoreInitial: false }, build);
+  watch(resolve(srcDir, "**/*.scss"), { ignoreInitial: false }, build);
 
 exports.watch = watchStyles;
 exports.build = build;

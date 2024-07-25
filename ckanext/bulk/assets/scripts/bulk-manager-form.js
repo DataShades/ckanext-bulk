@@ -8,6 +8,8 @@ ckan.module("bulk-manager-form", function () {
             actionSelect: ".bulk-select-action select",
             entitySelect: ".bulk-select-entity select",
             submitBtn: ".bulk-submit-form-btn",
+            globalOperator: "#global_operator",
+            infoBlock: ".bulk-info",
         },
         options: {},
 
@@ -15,11 +17,13 @@ ckan.module("bulk-manager-form", function () {
             $.proxyAll(this, /_/);
 
             this.managerForm = this.el.find("form");
-            this.updateToBlock = $(this.const.updateToBlock);
             this.filterBlock = $(this.const.filterBlock);
+            this.updateToBlock = $(this.const.updateToBlock);
             this.actionSelect = $(this.const.actionSelect);
             this.entitySelect = $(this.const.entitySelect);
             this.submitBtn = $(this.const.submitBtn);
+            this.globalOperator = $(this.const.globalOperator);
+            this.infoBlock = $(this.const.infoBlock);
 
             this.actionSelect.on("change", this._onActionSelectChange);
             this.entitySelect.on("change", this._onEntitySelectChange);
@@ -29,8 +33,25 @@ ckan.module("bulk-manager-form", function () {
             // Add event listeners on dynamic elements
             $('body').on('click', '.btn-item-remove', this._onFilterItemRemove);
 
+            // initialize CKAN modules for HTMX loaded pages
+            htmx.on("htmx:afterSettle", this._HTMXAfterSettle);
+
             // ON INIT
             this._onActionSelectChange();
+
+            this._initFieldSelectors(this.filterBlock.find(".bulk-field-select select"));
+            this._initFieldSelectors(this.updateToBlock.find("select"));
+            this._toggleRemoveBtns();
+        },
+
+        _HTMXAfterSettle(event) {
+            if (event.detail.pathInfo.requestPath == "/bulk/create_filter_item") {
+                this._initFieldSelectors(this.filterBlock.find(".bulk-field-select select"));
+            } else if (event.detail.pathInfo.requestPath == "/bulk/create_update_item") {
+                this._initFieldSelectors(this.updateToBlock.find("select"));
+            }
+
+            this._toggleRemoveBtns();
         },
 
         /**
@@ -42,22 +63,32 @@ ckan.module("bulk-manager-form", function () {
             this.updateToBlock.toggle(this.actionSelect.val() === "update");
         },
 
-        _onEntitySelectChange() {
+        _onEntitySelectChange(e) {
+            if (!this._getFilters().length) {
+                return;
+            }
+
+            this._reinitFieldSelectors(this.filterBlock.find(".bulk-field-select select"));
+            this._reinitFieldSelectors(this.updateToBlock.find("select"));
+
+            // HACK: select an input because swal will focus the last focused element
+            // and we don't want it to be an entity selector
+            $("#value").get(0).focus()
+
             Swal.fire({
-                title: "Do you want to save the changes?",
+                title: "Do you want to clear the filters?",
                 showDenyButton: true,
                 confirmButtonText: "Yes",
                 denyButtonText: "No"
             }).then((result) => {
                 if (result.isConfirmed) {
                     this._clearFilters();
-                } else if (result.isDenied) {
                 }
             });
         },
 
         _clearFilters() {
-            this.filterBlock.find("select").prop("selectedIndex", 0);
+            this.filterBlock.find("select").get(0).tomselect.clear();
             this.filterBlock.find("input").val("");
             this.filterBlock.find(".filter-item:not(:first)").remove();
             this.filterBlock.find(".filter-item .btn").prop("disabled", "disabled");
@@ -72,6 +103,24 @@ ckan.module("bulk-manager-form", function () {
 
         _onFilterItemRemove(e) {
             $(e.target).closest(".bulk-fieldset-item").remove();
+
+            this.managerForm.trigger("change");
+
+            this._toggleRemoveBtns();
+        },
+
+        _toggleRemoveBtns() {
+            if (this.filterBlock.find(".bulk-fieldset-item").length == 1) {
+                this.filterBlock.find(".filter-item .btn").prop("disabled", "disabled");
+            } else {
+                this.filterBlock.find(".filter-item .btn").prop("disabled", false);
+            }
+
+            if (this.updateToBlock.find(".update-field-item").length == 1) {
+                this.updateToBlock.find(".update-field-item .btn").prop("disabled", "disabled");
+            } else {
+                this.updateToBlock.find(".update-field-item .btn").prop("disabled", false);
+            }
         },
 
         _onSubmitBtnClick(e) {
@@ -103,9 +152,9 @@ ckan.module("bulk-manager-form", function () {
             this.filterBlock.find(".filter-item").each((_, el) => {
                 const field = $(el).find(".bulk-field-select select").val();
                 const operator = $(el).find(".bulk-operator-select select").val();
-                const value = $(el).find(".bulk-value-input input").val();
+                const value = $(el).find(".bulk-value-input input").val() || "";
 
-                if (field && operator && value) {
+                if (field && operator) {
                     filters.push({ field, operator, value });
                 }
             });
@@ -130,16 +179,20 @@ ckan.module("bulk-manager-form", function () {
 
         _onFormChange() {
             console.log("Form changed");
+            console.log(this.globalOperator);
 
             const data = {
                 entity_type: this.entitySelect.val(),
                 action: this.actionSelect.val(),
                 filters: this._getFilters(),
+                global_operator: this.globalOperator.is(":checked") ? "AND" : "OR",
             }
 
+            this._toggleLoadSpinner(true);
+
             if (!data.filters.length) {
-                console.log("No filters");
-                return;
+                this.infoBlock.find(".counter").html("There will be information about how many entities will be changed.");
+                return this._toggleLoadSpinner(false);
             }
 
             this.sandbox.client.call(
@@ -148,12 +201,53 @@ ckan.module("bulk-manager-form", function () {
                 data,
                 (data) => {
                     console.log(data);
-                    $(".bulk-info").html("Found " + data.result.count + " entities");
+                    this.infoBlock.find(".counter").html("Found " + data.result.length + " entities");
+                    this._toggleLoadSpinner(false);
                 },
                 (resp) => {
                     iziToast.error({ message: resp });
+                    this._toggleLoadSpinner(false);
                 }
             );
+        },
+
+        _initFieldSelectors: function (selectItems, reinit = false) {
+            selectItems.each((_, el) => {
+                if (el.tomselect !== undefined) {
+                    if (reinit) {
+                        el.tomselect.destroy();
+                    } else {
+                        return;
+                    }
+                }
+
+                console.log(el);
+
+                const self = this;
+
+                new TomSelect(el, {
+                    valueField: "value",
+                    labelField: "text",
+                    plugins: ['dropdown_input'],
+                    placeholder: "Search for field name",
+                    create: true,
+                    preload: true,
+                    load: function (query, callback) {
+                        var url = `/api/action/bulk_search_fields?query=${encodeURIComponent(query)}&entity_type=${self.entitySelect.val()}`;
+                        fetch(url)
+                            .then(response => response.json())
+                            .then(json => {
+                                callback(json.result);
+                            }).catch(() => {
+                                callback();
+                            });
+                    },
+                });
+            });
+        },
+
+        _toggleLoadSpinner: function (show) {
+            this.infoBlock.find(".spinner").toggle(show);
         }
     }
 })

@@ -2,8 +2,20 @@
 {% import 'bulk/form.html' as bulk_form %}
 
 <form action="{{ h.url_for('bulk.manager') }}" method="POST">
-    {{ bulk_form.select('entity_type', label=_('Entity type'), options=h.bulk_entity_options(), error=errors.entity_type, classes=["bulk-select-entity"]) }}
+    {{ bulk_form.select('entity_type', label=_('Entity type'), options=h.bulk_entity_options(), error=errors.entity_type, classes=["bulk-select-entity"], settings={"data-module-custom-render": true}) }}
     {{ bulk_form.select('action', label=_('Action'), options=h.bulk_action_options(), error=errors.action, classes=["bulk-select-action"]) }}
+
+    <div class="form-group toggle-switch">
+        <input type="checkbox" checked="checked" id="global_operator" name="global_operator" value="global_operator">
+        <label for="global_operator" class="container">
+            {% snippet 'bulk/snippets/svg/magnifier.svg' %}
+            {{_("Global operator:") }}
+            <div class="action">
+                <span class="option-1">{{ _("OR") }}</span>
+                <span class="option-2">{{ _("AND") }}</span>
+            </div>
+        </label>
+    </div>
 
     <div class="filters-list">
         <h3 class="d-flex justify-content-between">
