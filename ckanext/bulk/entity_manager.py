@@ -4,6 +4,7 @@ from abc import abstractmethod
 from typing import Any, TypedDict
 
 import ckan.plugins.toolkit as tk
+from ckan import model
 
 from ckanext.bulk import const
 
@@ -25,18 +26,19 @@ class FieldItem(TypedDict):
     text: str
 
 
+class UpdateItem(TypedDict):
+    field: str
+    value: str
+
+
 class EntityMissingError(Exception):
     def __init__(self, entity_type: str):
         super().__init__(f"EntityManager type {entity_type} not found")
 
 
-class SchemingEntityMissingError(Exception):
-    def __init__(self, entity_type: str, object_type: str):
-        super().__init__(f"Schema not found for {entity_type} {object_type}")
-
-
 class EntityManager:
     entity_type = ""
+    show_action = ""
 
     @classmethod
     @abstractmethod
@@ -49,6 +51,24 @@ class EntityManager:
         cls, filters: list[FilterItem], global_operator: str = "AND"
     ) -> list[dict[str, Any]]:
         pass
+
+    @classmethod
+    @abstractmethod
+    def update_entity(
+        cls, entity_id: str, update_items: list[UpdateItem]
+    ) -> dict[str, Any]:
+        pass
+
+    @classmethod
+    def get_entity_by_id(cls, entity_id: str) -> dict[str, Any] | None:
+        try:
+            group = tk.get_action(cls.show_action)(
+                {"ignore_auth": True}, {"id": entity_id}
+            )
+        except tk.ObjectNotFound:
+            return None
+
+        return group
 
     @classmethod
     def combine_filters(cls, filters: list[FilterItem]) -> list[CombinedFilter]:
@@ -89,14 +109,20 @@ class EntityManager:
 
         return combined_filters
 
+    @classmethod
+    def update_items_to_dict(cls, update_items: list[UpdateItem]) -> dict[str, Any]:
+        return {item["field"]: item["value"] for item in update_items}
+
 
 class DatasetEntityManager(EntityManager):
     entity_type = "dataset"
+    show_action = "package_show"
 
     @classmethod
     def get_fields(cls) -> list[FieldItem]:
         result = tk.get_action("package_search")(
-            {"ignore_auth": True}, {"rows": 1, "include_private": True}
+            {"ignore_auth": True},
+            {"rows": 1, "include_private": True, "q": f'type:"{cls.entity_type}"'},
         )
 
         if not result["results"]:
@@ -119,7 +145,7 @@ class DatasetEntityManager(EntityManager):
 
         The filters are combined with an AND operator.
         """
-        q_list = []
+        q_list = [f'type:"{cls.entity_type}"']
 
         for f in filters:
             operator = f["operator"]
@@ -147,14 +173,78 @@ class DatasetEntityManager(EntityManager):
             {"ignore_auth": True}, {"q": query, "include_private": True}
         )["results"]
 
+    @classmethod
+    def update_entity(
+        cls, entity_id: str, update_items: list[UpdateItem]
+    ) -> dict[str, Any]:
+        package = cls.get_entity_by_id(entity_id)
 
-class GroupEntityManager(EntityManager):
-    entity_type = "group"
-    action = "group_list"
+        if not package:
+            raise tk.ObjectNotFound(f"Dataset {entity_id} not found")
+
+        return tk.get_action("package_patch")(
+            {"ignore_auth": True},
+            {
+                "id": entity_id,
+                **cls.update_items_to_dict(update_items),
+            },
+        )
+
+
+class DatasetResourceEntityManager(EntityManager):
+    entity_type = "dataset_resource"
+    show_action = "resource_show"
 
     @classmethod
     def get_fields(cls) -> list[FieldItem]:
-        item_list = tk.get_action(cls.action)(
+        resource: model.Resource | None = (
+            model.Session.query(model.Resource)
+            .join(model.Package)
+            .filter(model.Package.type == "dataset")
+            .first()
+        )
+
+        if not resource:
+            return []
+
+        return [FieldItem(value=field, text=field) for field in resource.get_columns()]
+
+    @classmethod
+    def search_entities_by_filters(
+        cls, filters: list[FilterItem], global_operator: str = "AND"
+    ) -> list[dict[str, Any]]:
+        """Search for entities by the provided filters.
+
+        Since we are using CKAN resource_search action, we can't support
+        all the operators that we have in the frontend.
+
+        TODO: We should add support for more operators in the future.
+        """
+        supported_operators = [const.OP_IS]
+
+        for f in filters:
+            operator = f["operator"]
+
+            if operator not in supported_operators:
+                raise ValueError(f"Operator {operator} not supported")
+
+        # TODO: throw away filters without value, because resource_search
+        # could throw a DatabaseError for an empty filter query
+        query = [f"{f['field']}:{f['value']}" for f in filters if f["value"]]
+
+        return tk.get_action("resource_search")(
+            {"ignore_auth": True}, {"query": query, "include_private": True}
+        )["results"]
+
+
+class GroupEntityManager(EntityManager):
+    entity_type = "group"
+    list_action = "group_list"
+    show_action = "group_show"
+
+    @classmethod
+    def get_fields(cls) -> list[FieldItem]:
+        item_list = tk.get_action(cls.show_action)(
             {"ignore_auth": True}, {"all_fields": True}
         )
 
@@ -188,7 +278,7 @@ class GroupEntityManager(EntityManager):
         If we need an OR operator we should use `any` instead of `all` func.
         """
         # TODO: for now we're going to fetch only 25 groups
-        item_list = tk.get_action(cls.action)(
+        item_list = tk.get_action(cls.show_action)(
             {"ignore_auth": True}, {"all_fields": True}
         )
 
@@ -246,11 +336,13 @@ class GroupEntityManager(EntityManager):
 class OrganizationEntityManager(GroupEntityManager):
     entity_type = "organization"
     action = "organization_list"
+    show_action = "organization_show"
 
 
 def get_entity_managers() -> dict[str, type[EntityManager]]:
     return {
         "Dataset": DatasetEntityManager,
+        "Resource": DatasetResourceEntityManager,
         "Organization": OrganizationEntityManager,
         "Group": GroupEntityManager,
     }

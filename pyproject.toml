@@ -40,7 +40,8 @@ ignore = [
        "E712", # comparison to bool: violated by SQLAlchemy filters
        "PLC1901", # simplify comparison to empty string: violated by SQLAlchemy filters
        "PT004", # fixture does not return anything, add leading underscore: violated by clean_db
-       "RET503", # don't enforce return-None
+       "RET503", # don't enforce return-None,
+       "TRY003", # allow specifying the error message
 ]
 
 [tool.ruff.lint.per-file-ignores]

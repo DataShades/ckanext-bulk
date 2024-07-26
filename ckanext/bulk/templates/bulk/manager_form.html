@@ -31,7 +31,7 @@
             </button>
         </h3>
 
-        <div class="filters-list-wrapper">
+        <div class="filters-list-wrapper bulk-list">
             {% snippet 'bulk/snippets/filter_item.html', data=data, errors=errors %}
         </div>
     </div>
@@ -50,10 +50,12 @@
             </button>
         </h3>
 
-        <div class="update-to-fields-wrapper">
+        <div class="update-to-fields-wrapper bulk-list">
             {% snippet 'bulk/snippets/update_item.html', data=data, errors=errors %}
         </div>
     </div>
+
+    <div id="bulk-progress-container"></div>
 
     <div class="form-actions">
         <button type="button" class="btn btn-primary bulk-submit-form-btn">{{ _("Submit") }}</button>

@@ -21,6 +21,23 @@
                 {% snippet 'bulk/snippets/svg/spinner.svg' %}
                 {{ _("Loading...") }}
             </p>
+
+            <p><button class="btn btn-default" data-izimodal-open="#bulk-modal-result">{{ ("Search results")}}</button></p>
+            <p><button class="btn btn-default" data-izimodal-open="#bulk-modal-logs">{{ ("Logs")}}</button></p>
         </div>
     </div>
+{% endblock %}
+
+{% block scripts %}
+    <div id="bulk-modal-result" class="modal ticket-modal fade show">
+        {{ _("No results yet") }}
+    </div>
+
+    <div id="bulk-modal-logs" class="modal ticket-modal fade show">
+        <ul class="log-container">
+            {{ _("No logs yet") }}
+        </ul>
+    </div>
+
+    {{ super() }}
 {% endblock %}

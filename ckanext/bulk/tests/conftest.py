@@ -4,6 +4,7 @@ import pytest
 
 from ckanext.bulk.entity_manager import (
     DatasetEntityManager,
+    DatasetResourceEntityManager,
     GroupEntityManager,
     OrganizationEntityManager,
 )
@@ -22,3 +23,8 @@ def organization_entity_manager():
 @pytest.fixture()
 def dataset_entity_manager():
     return DatasetEntityManager
+
+
+@pytest.fixture()
+def dataset_resource_entity_manager():
+    return DatasetResourceEntityManager

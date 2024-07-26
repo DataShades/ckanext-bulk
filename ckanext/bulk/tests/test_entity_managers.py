@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import pytest
 
+import ckan.plugins.toolkit as tk
+
 from ckanext.bulk import const
 
 
 @pytest.mark.usefixtures("with_plugins", "clean_db")
-class TestGroupEntityManager:
+class TestGroupEntityManagerSearch:
     def test_filter_is(self, group_entity_manager, group_factory):
         group_factory(name="test")
 
@@ -170,7 +172,7 @@ class TestGroupEntityManager:
 
 
 @pytest.mark.usefixtures("with_plugins", "clean_db")
-class TestOrganizationEntityManager:
+class TestOrganizationEntityManagerSearch:
     def test_filter_is(self, organization_entity_manager, organization_factory):
         organization_factory(name="test")
 
@@ -249,7 +251,7 @@ class TestOrganizationEntityManager:
 
 
 @pytest.mark.usefixtures("with_plugins", "clean_db", "clean_index")
-class TestDatasetEntityManager:
+class TestDatasetEntityManagerSearch:
     def test_filter_is(self, dataset_entity_manager, package_factory):
         package_factory(title="test")
 
@@ -321,3 +323,87 @@ class TestDatasetEntityManager:
         )
 
         assert result
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db", "clean_index")
+class TestDatasetResourceEntityManagerSearch:
+    def test_filter_is(self, dataset_resource_entity_manager, resource_factory):
+        resource_factory(format="test")
+
+        result = dataset_resource_entity_manager.search_entities_by_filters(
+            [{"field": "format", "operator": const.OP_IS, "value": "test"}]
+        )
+
+        assert result
+
+    def test_filter_is_no_match(
+        self, dataset_resource_entity_manager, resource_factory
+    ):
+        resource_factory(format="test")
+
+        result = dataset_resource_entity_manager.search_entities_by_filters(
+            [{"field": "format", "operator": const.OP_IS, "value": "no match"}]
+        )
+
+        assert not result
+
+    def test_operator_is_not_supported(
+        self, dataset_resource_entity_manager, resource_factory
+    ):
+        resource_factory(format="test")
+
+        with pytest.raises(ValueError, match="Operator contains not supported"):
+            dataset_resource_entity_manager.search_entities_by_filters(
+                [{"field": "format", "operator": const.OP_CONTAINS, "value": "test"}]
+            )
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db", "clean_index")
+class TestDatasetEntityManagerUpdate:
+    def test_update_dataset(self, dataset_entity_manager, package_factory):
+        dataset = package_factory(title="test")
+
+        result = dataset_entity_manager.update_entity(
+            dataset["id"], [{"field": "title", "value": "xxx"}]
+        )
+
+        assert result["title"] == "xxx"
+
+    def test_update_dataset_doesnt_exist(self, dataset_entity_manager, package_factory):
+        package_factory()
+
+        with pytest.raises(tk.ObjectNotFound):
+            dataset_entity_manager.update_entity("no-match", {"title": "new title"})
+
+    def test_update_dataset_invalid_field(
+        self, dataset_entity_manager, package_factory
+    ):
+        dataset = package_factory()
+
+        result = dataset_entity_manager.update_entity(
+            dataset["id"], [{"field": "new_field", "value": "xxx"}]
+        )
+
+        assert "new_field" not in result
+
+    def test_update_dataset_empty_field(self, dataset_entity_manager, package_factory):
+        dataset = package_factory()
+
+        result = dataset_entity_manager.update_entity(
+            dataset["id"], [{"field": "title", "value": ""}]
+        )
+
+        assert result["title"] == result["name"]
+
+    def test_update_id_field(self, dataset_entity_manager, package_factory):
+        """Try to provide an id as a filter.
+
+        The id field is not updatable, because it will be merged into
+        a final payload for the patch method and replace the id we're passing
+        """
+        package_factory(title="test")
+
+        with pytest.raises(tk.ObjectNotFound):
+            dataset_entity_manager.update_entity(
+                "no-match", [{"field": "id", "value": "new-id"}]
+            )

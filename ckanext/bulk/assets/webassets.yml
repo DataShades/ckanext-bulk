@@ -8,13 +8,12 @@ bulk-js:
     - vendor/htmx.js
     - vendor/iziModal.js
     - vendor/iziToast.js
+    - vendor/prism.min.js
+    - vendor/progressbar.min.js
 
-    - scripts/bulk.js # global plugin scripts
+    - scripts/bulk.js
     - scripts/bulk-manager-form.js
     - scripts/bulk-tom-select.js
-
-    # - scripts/bulk-izi-modal.js
-    # - scripts/bulk-izi-toast.js
 
   extra:
     preload:
@@ -24,16 +23,8 @@ bulk-css:
   filter: cssrewrite
   output: ckanext-bulk/%(version)s-bulk.css
   contents:
-
-    ## source for these styles are included into _vendor.scss
-    # - vendor/tom-select.css
-
-    ## bootstrap styles cannot be included into SCSS, so you can use the static
-    ## version below.
-    # - vendor/tom-select.bootstrap5.css
-
     - vendor/iziModal.css
     - vendor/iziToast.css
+    - vendor/prism.min.css
 
-    # the main plugin theme
     - styles/bulk.css

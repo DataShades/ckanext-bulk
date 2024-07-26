@@ -2,7 +2,7 @@
 
 <div class="update-field-item bulk-fieldset-item">
     {{ form.select('update_field', label=_('Entity Field'), options=[], error=errors.update_field) }}
-    {{ form.input('update_value', label=_('Value'), value="", error=errors.update_value) }}
+    {{ form.input('update_value', label=_('Value'), value="", error=errors.update_value, placeholder=_("New value")) }}
 
     <button type="button" class="btn btn-light btn-lg btn-item-remove"><i class="fa fa-trash"></i></button>
 </div>

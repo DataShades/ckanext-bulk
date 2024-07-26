@@ -10,6 +10,12 @@ ckan.module("bulk-manager-form", function () {
             submitBtn: ".bulk-submit-form-btn",
             globalOperator: "#global_operator",
             infoBlock: ".bulk-info",
+            bulkModalResult: "#bulk-modal-result",
+            bulkModalLogs: "#bulk-modal-logs",
+        },
+        htmx: {
+            addFilter: "/bulk/htmx/create_filter_item",
+            addUpdate: "/bulk/htmx/create_update_item",
         },
         options: {},
 
@@ -24,6 +30,8 @@ ckan.module("bulk-manager-form", function () {
             this.submitBtn = $(this.const.submitBtn);
             this.globalOperator = $(this.const.globalOperator);
             this.infoBlock = $(this.const.infoBlock);
+            this.bulkModalResult = $(this.const.bulkModalResult);
+            this.bulkModalLogs = $(this.const.bulkModalLogs);
 
             this.actionSelect.on("change", this._onActionSelectChange);
             this.entitySelect.on("change", this._onEntitySelectChange);
@@ -37,21 +45,43 @@ ckan.module("bulk-manager-form", function () {
             htmx.on("htmx:afterSettle", this._HTMXAfterSettle);
 
             // ON INIT
-            this._onActionSelectChange();
+            this.bulkEntitiesToUpdate = [];
+            this.bulkLogs = [];
 
+            this._onActionSelectChange();
             this._initFieldSelectors(this.filterBlock.find(".bulk-field-select select"));
             this._initFieldSelectors(this.updateToBlock.find("select"));
-            this._toggleRemoveBtns();
+
+            this.bulkModalResult.iziModal({
+                title: 'Filtered entities',
+                subtitle: 'A list of entities, that will be changed',
+                padding: 20,
+                radius: 3,
+                borderBottom: false,
+                width: 1000,
+            });
+
+            this.bulkModalLogs.iziModal({
+                title: 'Logs',
+                subtitle: 'Logs of the bulk update process',
+                padding: 20,
+                radius: 3,
+                borderBottom: false,
+                width: 1000,
+            });
         },
 
+        /**
+         * This event is triggered after the DOM has settled.
+         *
+         * @param {Event} event
+         */
         _HTMXAfterSettle(event) {
-            if (event.detail.pathInfo.requestPath == "/bulk/create_filter_item") {
+            if (event.detail.pathInfo.requestPath == this.htmx.addFilter) {
                 this._initFieldSelectors(this.filterBlock.find(".bulk-field-select select"));
-            } else if (event.detail.pathInfo.requestPath == "/bulk/create_update_item") {
+            } else if (event.detail.pathInfo.requestPath == this.htmx.addUpdate) {
                 this._initFieldSelectors(this.updateToBlock.find("select"));
             }
-
-            this._toggleRemoveBtns();
         },
 
         /**
@@ -63,13 +93,21 @@ ckan.module("bulk-manager-form", function () {
             this.updateToBlock.toggle(this.actionSelect.val() === "update");
         },
 
+        /**
+         * Triggers when user tries to change the entity type.
+         *
+         * Suggest user to clear the filters, because different entities might
+         * have different fields.
+         *
+         * @param {Event} e
+         */
         _onEntitySelectChange(e) {
+            this._initFieldSelectors(this.filterBlock.find(".bulk-field-select select"), true);
+            this._initFieldSelectors(this.updateToBlock.find("select"), true);
+
             if (!this._getFilters().length) {
                 return;
             }
-
-            this._reinitFieldSelectors(this.filterBlock.find(".bulk-field-select select"));
-            this._reinitFieldSelectors(this.updateToBlock.find("select"));
 
             // HACK: select an input because swal will focus the last focused element
             // and we don't want it to be an entity selector
@@ -87,63 +125,44 @@ ckan.module("bulk-manager-form", function () {
             });
         },
 
+        /**
+         * Clear all filters
+         */
         _clearFilters() {
             this.filterBlock.find("select").get(0).tomselect.clear();
             this.filterBlock.find("input").val("");
-            this.filterBlock.find(".filter-item:not(:first)").remove();
-            this.filterBlock.find(".filter-item .btn").prop("disabled", "disabled");
+            this.filterBlock.find(".bulk-fieldset-item:not(:first)").remove();
         },
 
+        /**
+         * Clear all update fields. For now we're not using it.
+         */
         _clearUpdateOn() {
-            this.updateToBlock.find("select").prop("selectedIndex", 0);
+            this.updateToBlock.find("select").get(0).tomselect.clear();
             this.updateToBlock.find("input").val("");
-            this.updateToBlock.find(".update-field-item:not(:first)").remove();
-            this.updateToBlock.find(".update-field-item .btn").prop("disabled", "disabled");
+            this.updateToBlock.find(".bulk-fieldset-item:not(:first)").remove();
         },
 
+        /**
+         * Triggers when user tries to remove a filter item.
+         *
+         * If there is only one item left, show an error message and do not allow
+         * to remove it.
+         *
+         * If the item is removed, trigger the change event on the form, to recalculate
+         * the number of entities that will be updated.
+         *
+         * @param {Event} e
+         */
         _onFilterItemRemove(e) {
+            if ($(e.target).closest(".bulk-list").find(".bulk-fieldset-item").length <= 1) {
+                iziToast.error({ message: "You can't remove the last item" });
+                return;
+            };
+
             $(e.target).closest(".bulk-fieldset-item").remove();
 
             this.managerForm.trigger("change");
-
-            this._toggleRemoveBtns();
-        },
-
-        _toggleRemoveBtns() {
-            if (this.filterBlock.find(".bulk-fieldset-item").length == 1) {
-                this.filterBlock.find(".filter-item .btn").prop("disabled", "disabled");
-            } else {
-                this.filterBlock.find(".filter-item .btn").prop("disabled", false);
-            }
-
-            if (this.updateToBlock.find(".update-field-item").length == 1) {
-                this.updateToBlock.find(".update-field-item .btn").prop("disabled", "disabled");
-            } else {
-                this.updateToBlock.find(".update-field-item .btn").prop("disabled", false);
-            }
-        },
-
-        _onSubmitBtnClick(e) {
-            const data = {
-                entity_type: this.entitySelect.val(),
-                action: this.actionSelect.val(),
-                filters: this._getFilters(),
-                update_on: this._getUpdateOn(),
-            }
-
-            console.log(data);
-
-            this.sandbox.client.call(
-                "POST",
-                "bulk_perform",
-                data,
-                (data) => {
-                    //
-                },
-                (resp) => {
-                    iziToast.error({ message: resp });
-                }
-            );
         },
 
         _getFilters() {
@@ -178,9 +197,6 @@ ckan.module("bulk-manager-form", function () {
         },
 
         _onFormChange() {
-            console.log("Form changed");
-            console.log(this.globalOperator);
-
             const data = {
                 entity_type: this.entitySelect.val(),
                 action: this.actionSelect.val(),
@@ -189,6 +205,7 @@ ckan.module("bulk-manager-form", function () {
             }
 
             this._toggleLoadSpinner(true);
+            // window.bulkUpdateOn = this._getUpdateOn();
 
             if (!data.filters.length) {
                 this.infoBlock.find(".counter").html("There will be information about how many entities will be changed.");
@@ -200,8 +217,28 @@ ckan.module("bulk-manager-form", function () {
                 "bulk_get_entities_by_filters",
                 data,
                 (data) => {
-                    console.log(data);
-                    this.infoBlock.find(".counter").html("Found " + data.result.length + " entities");
+                    if (!data.result || data.result.error || data.result.fields.length === 0) {
+                        if (data.result.error) {
+                            iziToast.error({ message: data.result.error });
+                        }
+
+                        this.bulkModalResult.iziModal('setContent', "<p>No results yet</p>");
+                        this.infoBlock.find(".counter").html("Found 0 entities");
+                        this.bulkEntitiesToUpdate = [];
+                        return this._toggleLoadSpinner(false);
+                    }
+
+                    this.bulkModalResult.iziModal(
+                        "setContent",
+                        "<pre class='language-javascript'>"
+                        + JSON.stringify(data.result.fields, null, 2)
+                        + "</pre>"
+                    );
+
+                    Prism.highlightElement(this.bulkModalResult.find("pre")[0]);
+
+                    this.bulkEntitiesToUpdate = data.result.fields;
+                    this.infoBlock.find(".counter").html("Found " + data.result.fields.length + " entities");
                     this._toggleLoadSpinner(false);
                 },
                 (resp) => {
@@ -212,16 +249,17 @@ ckan.module("bulk-manager-form", function () {
         },
 
         _initFieldSelectors: function (selectItems, reinit = false) {
+            let prevValue = "";
+
             selectItems.each((_, el) => {
                 if (el.tomselect !== undefined) {
                     if (reinit) {
+                        prevValue = el.tomselect.getValue();
                         el.tomselect.destroy();
                     } else {
                         return;
                     }
                 }
-
-                console.log(el);
 
                 const self = this;
 
@@ -242,12 +280,108 @@ ckan.module("bulk-manager-form", function () {
                                 callback();
                             });
                     },
+                    onInitialize: function () {
+                        if (prevValue) {
+                            this.input.tomselect.addOption({
+                                text: prevValue,
+                                value: prevValue,
+                            });
+                            this.input.tomselect.setValue(prevValue);
+                        };
+                    }
                 });
             });
         },
 
         _toggleLoadSpinner: function (show) {
             this.infoBlock.find(".spinner").toggle(show);
+        },
+
+        _onSubmitBtnClick: async function (e) {
+            const entity_type = this.entitySelect.val();
+            const action = this.actionSelect.val();
+            const update_on = this._getUpdateOn();
+
+            if (!this.bulkEntitiesToUpdate.length) {
+                iziToast.error({ message: "Please, check the filters first" });
+                return;
+            }
+
+            if (!update_on.length) {
+                iziToast.error({ message: "Please, fill the update fields" });
+                return;
+            }
+
+            const bulkProgressBar = this._initProgressBar();
+
+            for (let i = 0; i < this.bulkEntitiesToUpdate.length; i++) {
+                const entity = this.bulkEntitiesToUpdate[i];
+
+                try {
+                    await this._callUpdateEntity(entity, entity_type, update_on, action);
+                    bulkProgressBar.animate(
+                        bulkProgressBar.value() + 1 / this.bulkEntitiesToUpdate.length
+                    );
+                } catch (error) {
+                    iziToast.error({ message: error });
+                }
+            };
+
+            bulkProgressBar.destroy();
+
+            iziToast.success({ message: "Bulk operation is finished. Check the logs to see results" });
+        },
+
+        _initProgressBar: function () {
+            const bulkProgressBar = new ProgressBar.Line($("#bulk-progress-container").get(0), {
+                strokeWidth: 4,
+                easing: 'easeInOut',
+                duration: 1400,
+                color: '#206b82',
+                trailColor: '#EEE',
+                trailWidth: 1,
+                svgStyle: { width: '100%', height: '100%' },
+                text: {
+                    style: {
+                        position: 'absolute',
+                        left: '0',
+                        top: '30px',
+                    },
+                    autoStyleContainer: false
+                },
+                step: (_, bar) => {
+                    bar.setText(Math.round(bar.value() * 100) + ' %');
+                }
+            });
+
+            bulkProgressBar.animate(0);
+
+            return bulkProgressBar;
+        },
+
+        _callUpdateEntity: function (entity, entity_type, update_on, action) {
+            return new Promise((done, fail) => {
+                this.sandbox.client.call("POST", "bulk_update_entity", {
+                    entity_type: entity_type,
+                    entity_id: entity.id,
+                    update_on: update_on,
+                    action: action,
+                }, (resp) => {
+                    this.bulkLogs.push(resp.result);
+
+                    this.bulkModalLogs.iziModal(
+                        "setContent",
+                        {
+                            content: "<pre class='language-javascript'>"
+                                + JSON.stringify(this.bulkLogs, null, 2)
+                                + "</pre>",
+                        }
+                    );
+                    done(resp);
+                }, (resp) => {
+                    fail(resp)
+                });
+            });
         }
     }
 })

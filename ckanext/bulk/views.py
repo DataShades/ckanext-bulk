@@ -49,5 +49,5 @@ class BulkManagerView(MethodView):
 
 
 bp.add_url_rule("/manager", view_func=BulkManagerView.as_view("manager"))
-bp.add_url_rule("/create_filter_item", view_func=create_filter_item)
-bp.add_url_rule("/create_update_item", view_func=create_update_item)
+bp.add_url_rule("/htmx/create_filter_item", view_func=create_filter_item)
+bp.add_url_rule("/htmx/create_update_item", view_func=create_update_item)
