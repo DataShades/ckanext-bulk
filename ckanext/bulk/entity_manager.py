@@ -203,7 +203,6 @@ class DatasetEntityManager(EntityManager):
                     "start": start,
                     "include_private": True,
                     "include_drafts": True,
-                    "include_deleted": True,
                 },
             )
 

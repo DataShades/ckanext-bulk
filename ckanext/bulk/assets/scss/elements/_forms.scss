@@ -2,6 +2,19 @@
 @use "utils" as u;
 @use "variables" as v;
 
+.primary {
+    .bulk-manager {
+        label.form-label {
+           float: unset;
+           width: unset;
+        }
+
+        .controls  {
+            margin-left: 0;
+        }
+    }
+}
+
 .toggle-switch {
     label {
         background-color: white;
