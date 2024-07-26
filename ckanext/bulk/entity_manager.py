@@ -39,6 +39,8 @@ class EntityMissingError(Exception):
 class EntityManager:
     entity_type = ""
     show_action = ""
+    patch_action = ""
+    delete_action = ""
 
     @classmethod
     @abstractmethod
@@ -50,13 +52,6 @@ class EntityManager:
     def search_entities_by_filters(
         cls, filters: list[FilterItem], global_operator: str = "AND"
     ) -> list[dict[str, Any]]:
-        pass
-
-    @classmethod
-    @abstractmethod
-    def update_entity(
-        cls, entity_id: str, update_items: list[UpdateItem]
-    ) -> dict[str, Any]:
         pass
 
     @classmethod
@@ -110,13 +105,38 @@ class EntityManager:
         return combined_filters
 
     @classmethod
+    def update_entity(
+        cls, entity_id: str, update_items: list[UpdateItem]
+    ) -> dict[str, Any]:
+        entity = cls.get_entity_by_id(entity_id)
+
+        if not entity:
+            raise tk.ObjectNotFound(f"Entity {entity_id} not found")
+
+        return tk.get_action(cls.patch_action)(
+            {"ignore_auth": True},
+            {
+                "id": entity_id,
+                **cls.update_items_to_dict(update_items),
+            },
+        )
+
+    @classmethod
     def update_items_to_dict(cls, update_items: list[UpdateItem]) -> dict[str, Any]:
         return {item["field"]: item["value"] for item in update_items}
+
+    @classmethod
+    def delete_entity(cls, entity_id: str) -> bool:
+        tk.get_action(cls.delete_action)({"ignore_auth": True}, {"id": entity_id})
+
+        return True
 
 
 class DatasetEntityManager(EntityManager):
     entity_type = "dataset"
     show_action = "package_show"
+    patch_action = "package_patch"
+    delete_action = "package_delete"
 
     @classmethod
     def get_fields(cls) -> list[FieldItem]:
@@ -169,31 +189,40 @@ class DatasetEntityManager(EntityManager):
 
         query = f" {global_operator} ".join(q_list)
 
-        return tk.get_action("package_search")(
-            {"ignore_auth": True}, {"q": query, "include_private": True}
-        )["results"]
+        start = 0
+        rows = 100
 
-    @classmethod
-    def update_entity(
-        cls, entity_id: str, update_items: list[UpdateItem]
-    ) -> dict[str, Any]:
-        package = cls.get_entity_by_id(entity_id)
+        results = []
 
-        if not package:
-            raise tk.ObjectNotFound(f"Dataset {entity_id} not found")
+        while True:
+            result = tk.get_action("package_search")(
+                {"ignore_auth": True},
+                {
+                    "q": query,
+                    "rows": rows,
+                    "start": start,
+                    "include_private": True,
+                    "include_drafts": True,
+                    "include_deleted": True,
+                },
+            )
 
-        return tk.get_action("package_patch")(
-            {"ignore_auth": True},
-            {
-                "id": entity_id,
-                **cls.update_items_to_dict(update_items),
-            },
-        )
+            results.extend(result["results"])
+
+            start += len(result["results"])
+
+            if start >= result["count"]:
+                break
+
+        return results
 
 
 class DatasetResourceEntityManager(EntityManager):
     entity_type = "dataset_resource"
+
     show_action = "resource_show"
+    patch_action = "resource_patch"
+    delete_action = "resource_delete"
 
     @classmethod
     def get_fields(cls) -> list[FieldItem]:
@@ -239,8 +268,11 @@ class DatasetResourceEntityManager(EntityManager):
 
 class GroupEntityManager(EntityManager):
     entity_type = "group"
+
     list_action = "group_list"
     show_action = "group_show"
+    patch_action = "group_patch"
+    delete_action = "group_delete"
 
     @classmethod
     def get_fields(cls) -> list[FieldItem]:
@@ -277,8 +309,9 @@ class GroupEntityManager(EntityManager):
 
         If we need an OR operator we should use `any` instead of `all` func.
         """
-        # TODO: for now we're going to fetch only 25 groups
-        item_list = tk.get_action(cls.show_action)(
+        # TODO: for now we're going to fetch only 25 groups due to some
+        # core restrictions.
+        item_list = tk.get_action(cls.list_action)(
             {"ignore_auth": True}, {"all_fields": True}
         )
 
@@ -335,8 +368,11 @@ class GroupEntityManager(EntityManager):
 
 class OrganizationEntityManager(GroupEntityManager):
     entity_type = "organization"
-    action = "organization_list"
+
+    list_action = "organization_list"
     show_action = "organization_show"
+    patch_action = "organization_patch"
+    delete_action = "organization_delete"
 
 
 def get_entity_managers() -> dict[str, type[EntityManager]]:

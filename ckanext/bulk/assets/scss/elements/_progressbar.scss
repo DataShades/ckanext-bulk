@@ -1,0 +1,20 @@
+.bulk-progress-bar {
+    #pb-runner-wrapper {
+        width: 100%;
+        background: #e2e2e2;
+        height: 2px;
+        display: flex;
+        align-items: center;
+
+        #pb-runner {
+            background: #206b82;
+            height: 10px;
+            width: 0%;
+            transition: width 300ms linear;
+        }
+    }
+
+    #pb-status {
+        margin-top: 1rem;
+    }
+}

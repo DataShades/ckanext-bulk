@@ -286,7 +286,7 @@ ckan.module("bulk-manager-form", function () {
                                 text: prevValue,
                                 value: prevValue,
                             });
-                            this.input.tomselect.setValue(prevValue);
+                            this.input.tomselect.setValue(prevValue, true);
                         };
                     }
                 });
@@ -307,54 +307,48 @@ ckan.module("bulk-manager-form", function () {
                 return;
             }
 
-            if (!update_on.length) {
+            if (this.updateToBlock.is(":visible") && !update_on.length) {
                 iziToast.error({ message: "Please, fill the update fields" });
                 return;
             }
 
-            const bulkProgressBar = this._initProgressBar();
+            this.bulkProgressBar = this._initProgressBar();
 
             for (let i = 0; i < this.bulkEntitiesToUpdate.length; i++) {
                 const entity = this.bulkEntitiesToUpdate[i];
 
                 try {
                     await this._callUpdateEntity(entity, entity_type, update_on, action);
-                    bulkProgressBar.animate(
-                        bulkProgressBar.value() + 1 / this.bulkEntitiesToUpdate.length
+                    this.bulkProgressBar.animate(
+                        this.bulkProgressBar.value() + this.bulkProgressBarPercent
                     );
                 } catch (error) {
                     iziToast.error({ message: error });
                 }
             };
 
-            bulkProgressBar.destroy();
+            this.bulkProgressBar.destroy();
 
             iziToast.success({ message: "Bulk operation is finished. Check the logs to see results" });
+
+            this.bulkModalLogs.iziModal(
+                "setContent",
+                {
+                    content: "<pre class='language-javascript'>"
+                        + JSON.stringify(this.bulkLogs, null, 2)
+                        + "</pre>",
+                }
+            );
+
+            Prism.highlightElement(this.bulkModalLogs.find("pre")[0]);
         },
 
         _initProgressBar: function () {
-            const bulkProgressBar = new ProgressBar.Line($("#bulk-progress-container").get(0), {
-                strokeWidth: 4,
-                easing: 'easeInOut',
-                duration: 1400,
-                color: '#206b82',
-                trailColor: '#EEE',
-                trailWidth: 1,
-                svgStyle: { width: '100%', height: '100%' },
-                text: {
-                    style: {
-                        position: 'absolute',
-                        left: '0',
-                        top: '30px',
-                    },
-                    autoStyleContainer: false
-                },
-                step: (_, bar) => {
-                    bar.setText(Math.round(bar.value() * 100) + ' %');
-                }
-            });
+            const bulkProgressBar = new BulkProgressBar("#bulk-progress-container", {});
 
             bulkProgressBar.animate(0);
+
+            this.bulkProgressBarPercent = 100 / this.bulkEntitiesToUpdate.length;
 
             return bulkProgressBar;
         },
@@ -369,14 +363,6 @@ ckan.module("bulk-manager-form", function () {
                 }, (resp) => {
                     this.bulkLogs.push(resp.result);
 
-                    this.bulkModalLogs.iziModal(
-                        "setContent",
-                        {
-                            content: "<pre class='language-javascript'>"
-                                + JSON.stringify(this.bulkLogs, null, 2)
-                                + "</pre>",
-                        }
-                    );
                     done(resp);
                 }, (resp) => {
                     fail(resp)
@@ -385,3 +371,61 @@ ckan.module("bulk-manager-form", function () {
         }
     }
 })
+
+class BulkProgressBar {
+    /**
+     * Create a new progress bar instance inside a container
+     *
+     * @param {String} container - container selector
+     * @param {Object} options - progress bar options
+     */
+    constructor(container, options) {
+        this.container = $(container);
+
+        if (!this.container) {
+            throw new Error("Container not found");
+        }
+
+        this.options = options;
+        this.progress = 0;
+
+        this.container.addClass("bulk-progress-bar");
+        this.container.append(`
+            <div id='pb-runner-wrapper'>
+                <div id='pb-runner'></div>
+            </div>
+        `);
+        this.container.append("<div id='pb-status'></div>");
+    }
+
+    /**
+     * Animate the progress bar
+     *
+     * @param {Number} value - progress value from 0 to 100
+     */
+    animate(value) {
+        value = Math.round(value * 100) / 100;
+
+        this.progress = value;
+
+        this.container.find("#pb-runner").width(`${value}%`);
+        this.container.find("#pb-status").html(`${value}%`);
+    }
+
+    /**
+     * Get current progress value
+     *
+     * @returns {Number} - current progress value
+     */
+    value() {
+        return this.progress;
+    }
+
+    /**
+     * Destroy the progress bar inside a container
+     */
+    destroy() {
+        this.container.removeClass("bulk-progress-bar");
+        this.container.empty();
+    }
+}

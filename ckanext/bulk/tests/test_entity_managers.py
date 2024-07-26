@@ -407,3 +407,214 @@ class TestDatasetEntityManagerUpdate:
             dataset_entity_manager.update_entity(
                 "no-match", [{"field": "id", "value": "new-id"}]
             )
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db", "clean_index")
+class TestDatasetResourceEntityManagerUpdate:
+    def test_update_dataset_resource(
+        self, dataset_resource_entity_manager, resource_factory
+    ):
+        resource = resource_factory()
+
+        result = dataset_resource_entity_manager.update_entity(
+            resource["id"], [{"field": "format", "value": "xxx"}]
+        )
+
+        assert result["format"] == "xxx"
+
+    def test_update_dataset_resource_doesnt_exist(
+        self, dataset_resource_entity_manager, resource_factory
+    ):
+        with pytest.raises(tk.ObjectNotFound):
+            dataset_resource_entity_manager.update_entity(
+                "no-match", [{"field": "format", "value": "new"}]
+            )
+
+    def test_update_dataset_resource_new_field(
+        self, dataset_resource_entity_manager, resource_factory
+    ):
+        """For some reason CKAN tend to save new fields for resources."""
+        resource = resource_factory()
+
+        result = dataset_resource_entity_manager.update_entity(
+            resource["id"], [{"field": "new_field", "value": "xxx"}]
+        )
+
+        assert "new_field" in result
+
+    def test_update_dataset_resource_empty_field(
+        self, dataset_resource_entity_manager, resource_factory
+    ):
+        resource = resource_factory()
+
+        result = dataset_resource_entity_manager.update_entity(
+            resource["id"], [{"field": "format", "value": ""}]
+        )
+
+        assert not result["format"]
+
+    def test_update_id_field(self, dataset_resource_entity_manager, resource_factory):
+        resource_factory()
+
+        with pytest.raises(tk.ObjectNotFound):
+            dataset_resource_entity_manager.update_entity(
+                "no-match", [{"field": "id", "value": "new-id"}]
+            )
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db", "clean_index")
+class TestGroupEntityManagerUpdate:
+    def test_update_group(self, group_entity_manager, group_factory):
+        group = group_factory()
+
+        result = group_entity_manager.update_entity(
+            group["id"], [{"field": "name", "value": "xxx"}]
+        )
+
+        assert result["name"] == "xxx"
+
+    def test_update_group_doesnt_exist(self, group_entity_manager, group_factory):
+        group_factory()
+
+        with pytest.raises(tk.ObjectNotFound):
+            group_entity_manager.update_entity("no-match", {"name": "new name"})
+
+    def test_update_group_invalid_field(self, group_entity_manager, group_factory):
+        group = group_factory()
+
+        result = group_entity_manager.update_entity(
+            group["id"], [{"field": "new_field", "value": "xxx"}]
+        )
+
+        assert "new_field" not in result
+
+    def test_update_group_empty_field(self, group_entity_manager, group_factory):
+        group = group_factory()
+
+        result = group_entity_manager.update_entity(
+            group["id"], [{"field": "name", "value": ""}]
+        )
+
+        # TODO: this looks like a CKAN bug, we shouldn't be able to nullify
+        # the name field
+        assert not result["name"]
+
+    def test_update_id_field(self, group_entity_manager, group_factory):
+        group_factory()
+
+        with pytest.raises(tk.ObjectNotFound):
+            group_entity_manager.update_entity("no-match", {"id": "new-id"})
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db", "clean_index")
+class TestOrganizationEntityManagerUpdate:
+    def test_update_group(self, organization_entity_manager, organization_factory):
+        organization = organization_factory()
+
+        result = organization_entity_manager.update_entity(
+            organization["id"], [{"field": "name", "value": "xxx"}]
+        )
+
+        assert result["name"] == "xxx"
+
+    def test_update_group_doesnt_exist(
+        self, organization_entity_manager, organization_factory
+    ):
+        organization_factory()
+
+        with pytest.raises(tk.ObjectNotFound):
+            organization_entity_manager.update_entity("no-match", {"name": "new name"})
+
+    def test_update_group_invalid_field(
+        self, organization_entity_manager, organization_factory
+    ):
+        organization = organization_factory()
+
+        result = organization_entity_manager.update_entity(
+            organization["id"], [{"field": "new_field", "value": "xxx"}]
+        )
+
+        assert "new_field" not in result
+
+    def test_update_group_empty_field(
+        self, organization_entity_manager, organization_factory
+    ):
+        organization = organization_factory()
+
+        result = organization_entity_manager.update_entity(
+            organization["id"], [{"field": "name", "value": ""}]
+        )
+
+        # TODO: this looks like a CKAN bug, we shouldn't be able to nullify
+        # the name field
+        assert not result["name"]
+
+    def test_update_id_field(self, organization_entity_manager, organization_factory):
+        organization_factory()
+
+        with pytest.raises(tk.ObjectNotFound):
+            organization_entity_manager.update_entity("no-match", {"id": "new-id"})
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db", "clean_index")
+class TestDatasetEntityManagerDelete:
+    def test_delete_dataset(self, dataset_entity_manager, package_factory):
+        dataset = package_factory()
+
+        assert dataset_entity_manager.delete_entity(dataset["id"]) is True
+
+    def test_delete_dataset_doesnt_exist(self, dataset_entity_manager, package_factory):
+        package_factory()
+
+        with pytest.raises(tk.ObjectNotFound):
+            dataset_entity_manager.delete_entity("no-match")
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db", "clean_index")
+class TestDatasetResourceEntityManagerDelete:
+    def test_delete_dataset_resource(
+        self, dataset_resource_entity_manager, resource_factory
+    ):
+        resource = resource_factory()
+
+        assert dataset_resource_entity_manager.delete_entity(resource["id"]) is True
+
+    def test_delete_dataset_resource_doesnt_exist(
+        self, dataset_resource_entity_manager, resource_factory
+    ):
+        resource_factory()
+
+        with pytest.raises(tk.ObjectNotFound):
+            dataset_resource_entity_manager.delete_entity("no-match")
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db", "clean_index")
+class TestGroupEntityManagerDelete:
+    def test_delete_group(self, group_entity_manager, group_factory):
+        group = group_factory()
+
+        assert group_entity_manager.delete_entity(group["id"]) is True
+
+    def test_delete_group_doesnt_exist(self, group_entity_manager, group_factory):
+        group_factory()
+
+        with pytest.raises(tk.ObjectNotFound):
+            group_entity_manager.delete_entity("no-match")
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db", "clean_index")
+class TestOrganizationEntityManagerDelete:
+    def test_delete_organization(
+        self, organization_entity_manager, organization_factory
+    ):
+        organization = organization_factory()
+
+        assert organization_entity_manager.delete_entity(organization["id"]) is True
+
+    def test_delete_organization_doesnt_exist(
+        self, organization_entity_manager, organization_factory
+    ):
+        organization_factory()
+
+        with pytest.raises(tk.ObjectNotFound):
+            organization_entity_manager.delete_entity("no-match")

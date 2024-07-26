@@ -17,33 +17,32 @@ from . import schema
 def bulk_update_entity(context: Context, data_dict: dict[str, Any]):
     entity_manager = get_entity_manager(data_dict["entity_type"])
 
+    error = None
+    result = None
+
     if data_dict["action"] == "update":
         try:
             result = entity_manager.update_entity(
                 data_dict["entity_id"], data_dict["update_on"]
             )
         except tk.ValidationError as e:
-            return {
-                "result": None,
-                "error": str(e),
-            }
+            error = str(e)
     elif data_dict["action"] == "delete":
-        try:
-            entity_manager.delete_entity(data_dict["entity_id"])
-        except tk.ValidationError as e:
-            return {
-                "result": None,
-                "error": str(e),
-            }
+        result = entity_manager.delete_entity(data_dict["entity_id"])
     else:
-        return {
-            "result": None,
-            "error": "Action is not supported",
-        }
+        error = "Action is not supported"
 
-    return {
+    response = {
         "result": result,
+        "error": error,
+        "action": data_dict["action"],
+        "entity_id": data_dict["entity_id"],
     }
+
+    if error:
+        response["error"] = error
+
+    return response
 
 
 @validate(schema.bulk_get_entities_by_filters)

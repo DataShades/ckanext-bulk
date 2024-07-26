@@ -9,7 +9,6 @@ bulk-js:
     - vendor/iziModal.js
     - vendor/iziToast.js
     - vendor/prism.min.js
-    - vendor/progressbar.min.js
 
     - scripts/bulk.js
     - scripts/bulk-manager-form.js
