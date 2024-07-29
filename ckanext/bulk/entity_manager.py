@@ -89,7 +89,7 @@ class EntityManager:
                         CombinedFilter(
                             field=current_field,
                             operator=current_operator,
-                            value=current_values,
+                            values=current_values,
                         )
                     )
 
@@ -102,7 +102,7 @@ class EntityManager:
                 CombinedFilter(
                     field=current_field,
                     operator=current_operator,
-                    value=current_values,
+                    values=current_values,
                 )
             )
 
@@ -215,7 +215,7 @@ class DatasetEntityManager(EntityManager):
                 q_list.append(f"{f['field']}:[* TO *]")
 
         query = f" {global_operator} ".join(q_list)
-        query = f"type:\"{cls.entity_type}\" AND ({query})"
+        query = f"type:\"{cls.entity_type}\" AND {query}"
 
         start = 0
         rows = 1000
