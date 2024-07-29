@@ -55,16 +55,16 @@ def bulk_get_entities_by_filters(context: Context, data_dict: dict[str, Any]):
         )
     except (ValueError, tk.ValidationError) as e:
         return {
-            "fields": [],
+            "entities": [],
             "error": str(e),
         }
     except DatabaseError as e:
         return {
-            "fields": [],
+            "entities": [],
             "error": f"Database error: {e.statement}",
         }
 
-    return {"fields": result}
+    return {"entities": result}
 
 
 @tk.side_effect_free

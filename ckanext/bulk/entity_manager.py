@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+import json
 from abc import abstractmethod
 from typing import Any, TypedDict
 
+from attr import field
+
 import ckan.plugins.toolkit as tk
 from ckan import model
+from ckan.lib.redis import connect_to_redis
 
 from ckanext.bulk import const
 
@@ -67,10 +71,10 @@ class EntityManager:
 
     @classmethod
     def combine_filters(cls, filters: list[FilterItem]) -> list[CombinedFilter]:
-        combined_filters = []
+        combined_filters: list[CombinedFilter] = []
 
-        current_field = None
-        current_operator = None
+        current_field = ""
+        current_operator = ""
         current_values = []
 
         for filter_item in filters:
@@ -82,11 +86,11 @@ class EntityManager:
             else:
                 if current_field and current_operator:
                     combined_filters.append(
-                        {
-                            "field": current_field,
-                            "operator": current_operator,
-                            "values": current_values,
-                        }
+                        CombinedFilter(
+                            field=current_field,
+                            operator=current_operator,
+                            value=current_values,
+                        )
                     )
 
                 current_field = filter_item["field"]
@@ -95,11 +99,11 @@ class EntityManager:
 
         if current_field and current_operator:
             combined_filters.append(
-                {
-                    "field": current_field,
-                    "operator": current_operator,
-                    "values": current_values,
-                }
+                CombinedFilter(
+                    field=current_field,
+                    operator=current_operator,
+                    value=current_values,
+                )
             )
 
         return combined_filters
@@ -111,7 +115,7 @@ class EntityManager:
         entity = cls.get_entity_by_id(entity_id)
 
         if not entity:
-            raise tk.ObjectNotFound(f"Entity {entity_id} not found")
+            raise tk.ObjectNotFound(f"Entity <{entity_id}> not found")
 
         return tk.get_action(cls.patch_action)(
             {"ignore_auth": True},
@@ -131,6 +135,22 @@ class EntityManager:
 
         return True
 
+    @classmethod
+    def cache_fields_to_redis(cls, fields: list[FieldItem], ttl: int = 3600):
+        conn = connect_to_redis()
+        conn.set(f"ckanext-bulk:fields:{cls.entity_type}", json.dumps(fields), ex=ttl)
+
+    @classmethod
+    def get_fields_from_redis(cls) -> list[FieldItem]:
+        conn = connect_to_redis()
+
+        fields = conn.get(f"ckanext-bulk:fields:{cls.entity_type}")
+
+        if not fields:
+            return []
+
+        return json.loads(fields)
+
 
 class DatasetEntityManager(EntityManager):
     entity_type = "dataset"
@@ -140,6 +160,9 @@ class DatasetEntityManager(EntityManager):
 
     @classmethod
     def get_fields(cls) -> list[FieldItem]:
+        if fields := cls.get_fields_from_redis():
+            return fields
+
         result = tk.get_action("package_search")(
             {"ignore_auth": True},
             {"rows": 1, "include_private": True, "q": f'type:"{cls.entity_type}"'},
@@ -148,7 +171,11 @@ class DatasetEntityManager(EntityManager):
         if not result["results"]:
             return []
 
-        return [FieldItem(value=field, text=field) for field in result["results"][0]]
+        fields = [FieldItem(value=field, text=field) for field in result["results"][0]]
+
+        cls.cache_fields_to_redis(fields)
+
+        return fields
 
     @classmethod
     def search_entities_by_filters(
@@ -190,7 +217,7 @@ class DatasetEntityManager(EntityManager):
         query = f" {global_operator} ".join(q_list)
 
         start = 0
-        rows = 100
+        rows = 1000
 
         results = []
 
@@ -225,6 +252,9 @@ class DatasetResourceEntityManager(EntityManager):
 
     @classmethod
     def get_fields(cls) -> list[FieldItem]:
+        if fields := cls.get_fields_from_redis():
+            return fields
+
         resource: model.Resource | None = (
             model.Session.query(model.Resource)
             .join(model.Package)
@@ -235,7 +265,13 @@ class DatasetResourceEntityManager(EntityManager):
         if not resource:
             return []
 
-        return [FieldItem(value=field, text=field) for field in resource.get_columns()]
+        fields = [
+            FieldItem(value=field, text=field) for field in resource.get_columns()
+        ]
+
+        cls.cache_fields_to_redis(fields)
+
+        return fields
 
     @classmethod
     def search_entities_by_filters(
@@ -275,20 +311,21 @@ class GroupEntityManager(EntityManager):
 
     @classmethod
     def get_fields(cls) -> list[FieldItem]:
-        item_list = tk.get_action(cls.show_action)(
-            {"ignore_auth": True}, {"all_fields": True}
+        if fields := cls.get_fields_from_redis():
+            return fields
+
+        item_list: list[dict[str, Any]] = tk.get_action(cls.show_action)(
+            {"ignore_auth": True}, {"all_fields": True, "rows": 1}
         )
 
         if not item_list:
             return []
 
-        return [
-            {
-                "value": field,
-                "text": field,
-            }
-            for field in item_list[0]
-        ]
+        fields = [FieldItem(value=field, text=field) for field in item_list[0]]
+
+        cls.cache_fields_to_redis(fields)
+
+        return fields
 
     @classmethod
     def search_entities_by_filters(

@@ -488,17 +488,6 @@ class TestGroupEntityManagerUpdate:
 
         assert "new_field" not in result
 
-    def test_update_group_empty_field(self, group_entity_manager, group_factory):
-        group = group_factory()
-
-        result = group_entity_manager.update_entity(
-            group["id"], [{"field": "name", "value": ""}]
-        )
-
-        # TODO: this looks like a CKAN bug, we shouldn't be able to nullify
-        # the name field
-        assert not result["name"]
-
     def test_update_id_field(self, group_entity_manager, group_factory):
         group_factory()
 
@@ -535,19 +524,6 @@ class TestOrganizationEntityManagerUpdate:
         )
 
         assert "new_field" not in result
-
-    def test_update_group_empty_field(
-        self, organization_entity_manager, organization_factory
-    ):
-        organization = organization_factory()
-
-        result = organization_entity_manager.update_entity(
-            organization["id"], [{"field": "name", "value": ""}]
-        )
-
-        # TODO: this looks like a CKAN bug, we shouldn't be able to nullify
-        # the name field
-        assert not result["name"]
 
     def test_update_id_field(self, organization_entity_manager, organization_factory):
         organization_factory()

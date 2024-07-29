@@ -17,7 +17,10 @@ ckan.module("bulk-manager-form", function () {
             addFilter: "/bulk/htmx/create_filter_item",
             addUpdate: "/bulk/htmx/create_update_item",
         },
-        options: {},
+        options: {
+            resultMaxEntries: 50,
+            logsMaxEntries: 50,
+        },
 
         initialize() {
             $.proxyAll(this, /_/);
@@ -205,7 +208,6 @@ ckan.module("bulk-manager-form", function () {
             }
 
             this._toggleLoadSpinner(true);
-            // window.bulkUpdateOn = this._getUpdateOn();
 
             if (!data.filters.length) {
                 this.infoBlock.find(".counter").html("There will be information about how many entities will be changed.");
@@ -217,7 +219,7 @@ ckan.module("bulk-manager-form", function () {
                 "bulk_get_entities_by_filters",
                 data,
                 (data) => {
-                    if (!data.result || data.result.error || data.result.fields.length === 0) {
+                    if (!data.result || data.result.error || data.result.entities.length === 0) {
                         if (data.result.error) {
                             iziToast.error({ message: data.result.error });
                         }
@@ -231,14 +233,14 @@ ckan.module("bulk-manager-form", function () {
                     this.bulkModalResult.iziModal(
                         "setContent",
                         "<pre class='language-javascript'>"
-                        + JSON.stringify(data.result.fields, null, 2)
+                        + JSON.stringify(this._limitResultEntries(data.result.entities), null, 2)
                         + "</pre>"
                     );
 
                     Prism.highlightElement(this.bulkModalResult.find("pre")[0]);
 
-                    this.bulkEntitiesToUpdate = data.result.fields;
-                    this.infoBlock.find(".counter").html("Found " + data.result.fields.length + " entities");
+                    this.bulkEntitiesToUpdate = data.result.entities;
+                    this.infoBlock.find(".counter").html("Found " + data.result.entities.length + " entities");
                     this._toggleLoadSpinner(false);
                 },
                 (resp) => {
@@ -246,6 +248,58 @@ ckan.module("bulk-manager-form", function () {
                     this._toggleLoadSpinner(false);
                 }
             );
+        },
+
+        /**
+         * Limit the number of entries in the result to avoid performance issues.
+         *
+         * Also remove some fields that are not needed for the user.
+         *
+         * @param {Array<Object>} entities
+         *
+         * @returns {Array<Object>}
+         */
+        _limitResultEntries: function (entities) {
+            entities = entities.slice(0, this.options.resultMaxEntries);
+
+            entities.forEach(entity => {
+                delete entity.resources;
+                delete entity.organization;
+                delete entity.groups;
+
+                delete entity.relationships_as_subject,
+                delete entity.relationships_as_object;
+            });
+
+            return entities;
+        },
+
+        /**
+         * Limit the number of entries in the logs to avoid performance issues.
+         *
+         * Also remove some fields that are not needed for the user.
+         *
+         * @param {Array<Object>} logs
+         *
+         * @returns {Array<Object>}
+         */
+        _limitLogsEntries: function (logs) {
+            logs = logs.slice(logs.length - this.options.logsMaxEntries, logs.length);
+
+            logs.forEach(log => {
+                if (!log.result) {
+                    return;
+                }
+
+                delete log.result.resources;
+                delete log.result.organization;
+                delete log.result.groups;
+
+                delete log.result.relationships_as_subject,
+                delete log.result.relationships_as_object;
+            });
+
+            return logs;
         },
 
         _initFieldSelectors: function (selectItems, reinit = false) {
@@ -335,7 +389,7 @@ ckan.module("bulk-manager-form", function () {
                 "setContent",
                 {
                     content: "<pre class='language-javascript'>"
-                        + JSON.stringify(this.bulkLogs, null, 2)
+                        + JSON.stringify(this._limitLogsEntries(this.bulkLogs), null, 2)
                         + "</pre>",
                 }
             );
