@@ -4,10 +4,7 @@ bulk-js:
   contents:
     - vendor/tom-select.complete.min.js
     - vendor/sweetalert2.all.js
-    - vendor/hyperscript.js
     - vendor/htmx.js
-    - vendor/iziModal.js
-    - vendor/iziToast.js
     - vendor/prism.min.js
 
     - scripts/bulk.js
@@ -22,8 +19,6 @@ bulk-css:
   filter: cssrewrite
   output: ckanext-bulk/%(version)s-bulk.css
   contents:
-    - vendor/iziModal.css
-    - vendor/iziToast.css
     - vendor/prism.min.css
 
     - styles/bulk.css

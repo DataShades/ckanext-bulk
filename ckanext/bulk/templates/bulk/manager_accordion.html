@@ -1,0 +1,30 @@
+<div class="accordion mb-3" id="bulkAccordion">
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="bulk-modal-result">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                {{ ("Search results")}}
+            </button>
+        </h2>
+        <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="bulk-modal-result"
+            data-bs-parent="#bulkAccordion">
+            <div class="accordion-body" id="bulk-result-container">
+                {{ _("No results yet") }}
+            </div>
+        </div>
+    </div>
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="bulk-modal-logs">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                {{ ("Logs")}}
+            </button>
+        </h2>
+        <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="bulk-modal-logs"
+            data-bs-parent="#bulkAccordion">
+            <div class="accordion-body" id="bulk-logs-container">
+                {{ _("No logs yet") }}
+            </div>
+        </div>
+    </div>
+</div>

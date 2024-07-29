@@ -10,8 +10,8 @@ ckan.module("bulk-manager-form", function () {
             submitBtn: ".bulk-submit-form-btn",
             globalOperator: "#global_operator",
             infoBlock: ".bulk-info",
-            bulkModalResult: "#bulk-modal-result",
-            bulkModalLogs: "#bulk-modal-logs",
+            bulkResultContainer: "#bulk-result-container",
+            bulkLogsContainer: "#bulk-logs-container",
         },
         htmx: {
             addFilter: "/bulk/htmx/create_filter_item",
@@ -33,13 +33,27 @@ ckan.module("bulk-manager-form", function () {
             this.submitBtn = $(this.const.submitBtn);
             this.globalOperator = $(this.const.globalOperator);
             this.infoBlock = $(this.const.infoBlock);
-            this.bulkModalResult = $(this.const.bulkModalResult);
-            this.bulkModalLogs = $(this.const.bulkModalLogs);
+            this.bulkResultContainer = $(this.const.bulkResultContainer);
+            this.bulkLogsContainer = $(this.const.bulkLogsContainer);
 
             this.actionSelect.on("change", this._onActionSelectChange);
             this.entitySelect.on("change", this._onEntitySelectChange);
             this.submitBtn.on("click", this._onSubmitBtnClick);
             this.managerForm.on("change", this._onFormChange);
+
+            // global setup for toast messages
+            this.toast = Swal.mixin({
+                toast: true,
+                position: "bottom-end",
+                showConfirmButton: false,
+                showCloseButton: true,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
 
             // Add event listeners on dynamic elements
             $('body').on('click', '.btn-item-remove', this._onFilterItemRemove);
@@ -54,24 +68,6 @@ ckan.module("bulk-manager-form", function () {
             this._onActionSelectChange();
             this._initFieldSelectors(this.filterBlock.find(".bulk-field-select select"));
             this._initFieldSelectors(this.updateToBlock.find("select"));
-
-            this.bulkModalResult.iziModal({
-                title: 'Filtered entities',
-                subtitle: 'A list of entities, that will be changed',
-                padding: 20,
-                radius: 3,
-                borderBottom: false,
-                width: 1000,
-            });
-
-            this.bulkModalLogs.iziModal({
-                title: 'Logs',
-                subtitle: 'Logs of the bulk update process',
-                padding: 20,
-                radius: 3,
-                borderBottom: false,
-                width: 1000,
-            });
         },
 
         /**
@@ -159,8 +155,10 @@ ckan.module("bulk-manager-form", function () {
          */
         _onFilterItemRemove(e) {
             if ($(e.target).closest(".bulk-list").find(".bulk-fieldset-item").length <= 1) {
-                iziToast.error({ message: "You can't remove the last item" });
-                return;
+                return this.toast.fire({
+                    icon: "error",
+                    title: "You can't remove the last item"
+                });
             };
 
             $(e.target).closest(".bulk-fieldset-item").remove();
@@ -199,7 +197,13 @@ ckan.module("bulk-manager-form", function () {
             return updateOn;
         },
 
-        _onFormChange() {
+        _onFormChange(e) {
+            // if update item is changing, do not trigger the form change
+            if ($(e.target).closest(".update-field-item").length) {
+                e.preventDefault();
+                return;
+            }
+
             const data = {
                 entity_type: this.entitySelect.val(),
                 action: this.actionSelect.val(),
@@ -221,30 +225,48 @@ ckan.module("bulk-manager-form", function () {
                 (data) => {
                     if (!data.result || data.result.error || data.result.entities.length === 0) {
                         if (data.result.error) {
-                            iziToast.error({ message: data.result.error });
+                            return this.toast.fire({
+                                icon: "error",
+                                title: data.result.error
+                            });
                         }
 
-                        this.bulkModalResult.iziModal('setContent', "<p>No results yet</p>");
+                        this.bulkResultContainer.html("<p>No results yet</p>");
                         this.infoBlock.find(".counter").html("Found 0 entities");
                         this.bulkEntitiesToUpdate = [];
+
+                        this.toast.fire({
+                            icon: "success",
+                            title: "Found 0 entities"
+                        });
+
                         return this._toggleLoadSpinner(false);
                     }
 
-                    this.bulkModalResult.iziModal(
-                        "setContent",
-                        "<pre class='language-javascript'>"
-                        + JSON.stringify(this._limitResultEntries(data.result.entities), null, 2)
-                        + "</pre>"
-                    );
+                    this.bulkResultContainer.html($(`
+                        <p>Showing first ${this.options.resultMaxEntries} entities</p>
+                        <pre class='language-javascript'>
+                            ${JSON.stringify(this._limitResultEntries(data.result.entities), null, 2)}
+                        </pre>
+                    `)).promise().done(() => {
+                        Prism.highlightElement(this.bulkResultContainer.find("pre")[0]);
 
-                    Prism.highlightElement(this.bulkModalResult.find("pre")[0]);
+                        this.bulkEntitiesToUpdate = data.result.entities;
+                        this.infoBlock.find(".counter").html("Found " + data.result.entities.length + " entities");
 
-                    this.bulkEntitiesToUpdate = data.result.entities;
-                    this.infoBlock.find(".counter").html("Found " + data.result.entities.length + " entities");
-                    this._toggleLoadSpinner(false);
+                        this.toast.fire({
+                            icon: "success",
+                            title: `Found ${data.result.entities.length} entities`
+                        });
+
+                        this._toggleLoadSpinner(false);
+                    });
                 },
                 (resp) => {
-                    iziToast.error({ message: resp });
+                    this.toast.fire({
+                        icon: "error",
+                        title: resp
+                    });
                     this._toggleLoadSpinner(false);
                 }
             );
@@ -268,7 +290,7 @@ ckan.module("bulk-manager-form", function () {
                 delete entity.groups;
 
                 delete entity.relationships_as_subject,
-                delete entity.relationships_as_object;
+                    delete entity.relationships_as_object;
             });
 
             return entities;
@@ -296,7 +318,7 @@ ckan.module("bulk-manager-form", function () {
                 delete log.result.groups;
 
                 delete log.result.relationships_as_subject,
-                delete log.result.relationships_as_object;
+                    delete log.result.relationships_as_object;
             });
 
             return logs;
@@ -357,13 +379,17 @@ ckan.module("bulk-manager-form", function () {
             const update_on = this._getUpdateOn();
 
             if (!this.bulkEntitiesToUpdate.length) {
-                iziToast.error({ message: "Please, check the filters first" });
-                return;
+                return this.toast.fire({
+                    icon: "error",
+                    title: "Please, check the filters first"
+                });
             }
 
             if (this.updateToBlock.is(":visible") && !update_on.length) {
-                iziToast.error({ message: "Please, fill the update fields" });
-                return;
+                return this.toast.fire({
+                    icon: "error",
+                    title: "Please, fill the update fields"
+                });
             }
 
             this.bulkProgressBar = this._initProgressBar();
@@ -377,24 +403,28 @@ ckan.module("bulk-manager-form", function () {
                         this.bulkProgressBar.value() + this.bulkProgressBarPercent
                     );
                 } catch (error) {
-                    iziToast.error({ message: error });
+                    this.toast.fire({
+                        icon: "error",
+                        title: error
+                    });
                 }
             };
 
             this.bulkProgressBar.destroy();
 
-            iziToast.success({ message: "Bulk operation is finished. Check the logs to see results" });
+            this.toast.fire({
+                icon: "success",
+                title: "Bulk operation is finished. Check the logs to see results"
+            });
 
-            this.bulkModalLogs.iziModal(
-                "setContent",
-                {
-                    content: "<pre class='language-javascript'>"
-                        + JSON.stringify(this._limitLogsEntries(this.bulkLogs), null, 2)
-                        + "</pre>",
-                }
-            );
-
-            Prism.highlightElement(this.bulkModalLogs.find("pre")[0]);
+            this.bulkLogsContainer.html(`
+                <p>Showing last ${this.options.logsMaxEntries} entries</p>
+                <pre class='language-javascript'>
+                    ${JSON.stringify(this._limitLogsEntries(this.bulkLogs), null, 2)}
+                </pre>
+            `).promise().done(() => {
+                Prism.highlightElement(this.bulkLogsContainer.find("pre")[0]);
+            });
         },
 
         _initProgressBar: function () {

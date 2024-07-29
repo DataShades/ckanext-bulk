@@ -1,0 +1,13 @@
+@use "mixins" as m;
+@use "utils" as u;
+@use "variables" as v;
+
+#bulkAccordion {
+    .accordion-item {
+        border-color: #d0d0d0;
+    }
+    .accordion-body {
+        max-height: 700px;
+        overflow-y: auto;
+    }
+}
