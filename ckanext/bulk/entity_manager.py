@@ -192,7 +192,7 @@ class DatasetEntityManager(EntityManager):
 
         The filters are combined with an AND operator.
         """
-        q_list = [f'type:"{cls.entity_type}"']
+        q_list = []
 
         for f in filters:
             operator = f["operator"]
@@ -215,6 +215,7 @@ class DatasetEntityManager(EntityManager):
                 q_list.append(f"{f['field']}:[* TO *]")
 
         query = f" {global_operator} ".join(q_list)
+        query = f"type:\"{cls.entity_type}\" AND ({query})"
 
         start = 0
         rows = 1000
