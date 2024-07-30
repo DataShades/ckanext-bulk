@@ -41,6 +41,10 @@ ckan.module("bulk-manager-form", function () {
             this.submitBtn.on("click", this._onSubmitBtnClick);
             this.managerForm.on("change", this._onFormChange);
 
+            window.onbeforeunload = function (_) {
+                return "Are you sure you want to leave this page? The bulk action is in progress.";
+            };
+
             // global setup for toast messages
             this.toast = Swal.mixin({
                 toast: true,
@@ -225,6 +229,8 @@ ckan.module("bulk-manager-form", function () {
                 (data) => {
                     if (!data.result || data.result.error || data.result.entities.length === 0) {
                         if (data.result.error) {
+                            this._toggleLoadSpinner(false);
+
                             return this.toast.fire({
                                 icon: "error",
                                 title: data.result.error
@@ -489,6 +495,10 @@ class BulkProgressBar {
      */
     animate(value) {
         value = Math.round(value * 100) / 100;
+
+        if (value > 100) {
+            value = 100;
+        }
 
         this.progress = value;
 
