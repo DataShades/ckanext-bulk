@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+import ckan.model as model
 import ckan.plugins.toolkit as tk
 
 from ckanext.bulk import const
@@ -357,6 +358,82 @@ class TestDatasetResourceEntityManagerSearch:
                 [{"field": "format", "operator": const.OP_CONTAINS, "value": "test"}]
             )
 
+    @pytest.mark.parametrize(
+        ("field_name", "value"),
+        [
+            ("name", "new_name"),
+            ("format", "new_format"),
+            ("url", "http://example.com"),
+            ("description", "test"),
+        ],
+    )
+    def test_search_by_field(
+        self, field_name, value, dataset_resource_entity_manager, resource_factory
+    ):
+        resource_factory(**{field_name: value})
+
+        result = dataset_resource_entity_manager.search_entities_by_filters(
+            [{"field": field_name, "operator": const.OP_IS, "value": value}]
+        )
+
+        assert result
+
+    def test_search_similar_titles(
+        self, dataset_resource_entity_manager, resource_factory
+    ):
+        resource_factory(name="csv data")
+        resource_factory(name="information csv")
+
+        result = dataset_resource_entity_manager.search_entities_by_filters(
+            [{"field": "name", "operator": const.OP_IS, "value": "csv data"}]
+        )
+
+        assert len(result) == 1
+
+    def test_search_title_exact_match(
+        self, dataset_resource_entity_manager, resource_factory
+    ):
+        resource_factory(name="csv data")
+
+        result = dataset_resource_entity_manager.search_entities_by_filters(
+            [{"field": "name", "operator": const.OP_IS, "value": "csv data"}]
+        )
+
+        assert len(result) == 1
+
+        result = dataset_resource_entity_manager.search_entities_by_filters(
+            [{"field": "name", "operator": const.OP_IS, "value": "csv"}]
+        )
+
+        assert not result
+
+    def test_search_by_extra_field(
+        self, dataset_resource_entity_manager, resource_factory
+    ):
+        resource_factory(attribution="XXX111")
+
+        result = dataset_resource_entity_manager.search_entities_by_filters(
+            [{"field": "attribution", "operator": const.OP_IS, "value": "XXX111"}]
+        )
+
+        assert result
+
+    def test_search_with_or_operator(
+        self, dataset_resource_entity_manager, resource_factory
+    ):
+        resource_factory(format="CSV")
+        resource_factory(format="XLSX")
+
+        result = dataset_resource_entity_manager.search_entities_by_filters(
+            [
+                {"field": "format", "operator": const.OP_IS, "value": "CSV"},
+                {"field": "format", "operator": const.OP_IS, "value": "XLSX"},
+            ],
+            const.GLOBAL_OR,
+        )
+
+        assert result
+
 
 @pytest.mark.usefixtures("with_plugins", "clean_db", "clean_index")
 class TestDatasetEntityManagerUpdate:
@@ -538,6 +615,7 @@ class TestDatasetEntityManagerDelete:
         dataset = package_factory()
 
         assert dataset_entity_manager.delete_entity(dataset["id"]) is True
+        assert model.Package.get(dataset["id"]).state == model.State.DELETED  # type: ignore
 
     def test_delete_dataset_doesnt_exist(self, dataset_entity_manager, package_factory):
         package_factory()
@@ -554,6 +632,7 @@ class TestDatasetResourceEntityManagerDelete:
         resource = resource_factory()
 
         assert dataset_resource_entity_manager.delete_entity(resource["id"]) is True
+        assert model.Resource.get(resource["id"]).state == model.State.DELETED  # type: ignore
 
     def test_delete_dataset_resource_doesnt_exist(
         self, dataset_resource_entity_manager, resource_factory
@@ -570,6 +649,7 @@ class TestGroupEntityManagerDelete:
         group = group_factory()
 
         assert group_entity_manager.delete_entity(group["id"]) is True
+        assert model.Group.get(group["id"]).state == model.State.DELETED  # type: ignore
 
     def test_delete_group_doesnt_exist(self, group_entity_manager, group_factory):
         group_factory()
@@ -586,6 +666,7 @@ class TestOrganizationEntityManagerDelete:
         organization = organization_factory()
 
         assert organization_entity_manager.delete_entity(organization["id"]) is True
+        assert model.Group.get(organization["id"]).state == model.State.DELETED  # type: ignore
 
     def test_delete_organization_doesnt_exist(
         self, organization_entity_manager, organization_factory

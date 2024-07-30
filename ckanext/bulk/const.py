@@ -6,3 +6,6 @@ OP_STARTS_WITH = "starts_with"
 OP_ENDS_WITH = "ends_with"
 OP_IS_EMPTY = "is_empty"
 OP_IS_NOT_EMPTY = "is_not_empty"
+
+GLOBAL_AND = "AND"
+GLOBAL_OR = "OR"

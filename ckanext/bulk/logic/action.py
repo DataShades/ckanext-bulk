@@ -28,9 +28,12 @@ def bulk_update_entity(context: Context, data_dict: dict[str, Any]):
                 data_dict["entity_id"], data_dict["update_on"]
             )
         except tk.ValidationError as e:
-            error = str(e)
+            error = str(e.error_dict)
     elif data_dict["action"] == "delete":
-        result = entity_manager.delete_entity(data_dict["entity_id"])
+        try:
+            result = entity_manager.delete_entity(data_dict["entity_id"])
+        except tk.ValidationError as e:
+            error = str(e.error_dict)
     else:
         error = "Action is not supported"
 
