@@ -15,6 +15,8 @@ from . import schema
 
 @validate(schema.bulk_update_entity)
 def bulk_update_entity(context: Context, data_dict: dict[str, Any]):
+    tk.check_access("bulk_manager", context, data_dict)
+
     entity_manager = get_entity_manager(data_dict["entity_type"])
 
     error = None
@@ -47,6 +49,8 @@ def bulk_update_entity(context: Context, data_dict: dict[str, Any]):
 
 @validate(schema.bulk_get_entities_by_filters)
 def bulk_get_entities_by_filters(context: Context, data_dict: dict[str, Any]):
+    tk.check_access("bulk_manager", context, data_dict)
+
     entity_manager = get_entity_manager(data_dict["entity_type"])
 
     try:
@@ -70,6 +74,8 @@ def bulk_get_entities_by_filters(context: Context, data_dict: dict[str, Any]):
 @tk.side_effect_free
 @validate(schema.bulk_search_fields)
 def bulk_search_fields(context: Context, data_dict: dict[str, Any]):
+    tk.check_access("bulk_manager", context, data_dict)
+
     entity_manager = get_entity_manager(data_dict["entity_type"])
 
     try:
