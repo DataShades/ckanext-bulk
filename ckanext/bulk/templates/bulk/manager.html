@@ -21,17 +21,3 @@
         </div>
     </div>
 {% endblock %}
-
-{% block scripts %}
-    <div id="bulk-modal-result" class="modal ticket-modal fade show">
-        {{ _("No results yet") }}
-    </div>
-
-    <div id="bulk-modal-logs" class="modal ticket-modal fade show">
-        <ul class="log-container">
-            {{ _("No logs yet") }}
-        </ul>
-    </div>
-
-    {{ super() }}
-{% endblock %}
