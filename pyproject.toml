@@ -1,3 +1,71 @@
+[build-system]
+requires = ["setuptools>=61.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ckanext-bulk"
+version = "0.2.11"
+description = "Bulk update for CKAN datasets/resources"
+authors = [
+    {name = "DataShades", email = "datashades@linkdigital.com.au"},
+    {name = "Oleksandr Cherniavskyi", email = "mutantsan@gmail.com"},
+]
+maintainers = [
+    {name = "DataShades", email = "datashades@linkdigital.com.au"},
+]
+license = {text = "AGPL"}
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+keywords = ["CKAN"]
+requires-python = ">= 3.8"
+dependencies = ["typing_extensions"]
+
+[project.readme]
+file = "README.md"
+content-type = "text/markdown"
+
+[project.urls]
+Homepage = "https://github.com/DataShades/ckanext-bulk"
+
+[project.entry-points]
+"ckan.plugins" = {bulk = "ckanext.bulk.plugin:BulkPlugin"}
+"babel.extractors" = {ckan = "ckan.lib.extract:extract_ckan"}
+
+[project.optional-dependencies]
+test = [
+    "pytest-ckan",
+    "pytest-benchmark",
+    "pytest-pretty",
+]
+docs = [
+    "mkdocs",
+    "mkdocs-material",
+    "pymdown-extensions",
+    "mkdocstrings[python]",
+]
+dev = [
+    "pytest-ckan",
+    "pytest-benchmark",
+    "pytest-pretty",
+    "mkdocs",
+    "mkdocs-material",
+    "pymdown-extensions",
+    "mkdocstrings[python]",
+    "pre-commit",
+]
+
+[tool.setuptools.packages]
+find = {}
+
+
 [tool.ruff]
 target-version = "py38"
 
