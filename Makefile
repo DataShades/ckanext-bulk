@@ -70,10 +70,10 @@ ext_list = \
 # * TYPE: type of reference specified by the next part. One of: branch, commit, tag
 #
 # * REF: commit hash, branch name, tag name, depending on TYPE value. Prefer tags
-remote-admin-panel = https://github.com/mutantsan/ckanext-admin-panel commit 999183a
+remote-admin-panel = https://github.com/DataShades/ckanext-admin-panel commit 999183a
 # dev is an alternative. You can install it via `make full-upgrade
 # alternative=dev`. Any other prefix can be used instead of `dev`.
-dev-admin-panel = https://github.com/mutantsan/ckanext-admin-panel branch master
+dev-admin-panel = https://github.com/DataShades/ckanext-admin-panel branch master
 
 remote-cloudstorage = https://github.com/DataShades/ckanext-cloudstorage.git tag v0.3.2
 remote-collection = https://github.com/DataShades/ckanext-collection.git tag v0.2.0a0
@@ -86,11 +86,11 @@ remote-geoview = https://github.com/ckan/ckanext-geoview.git tag v0.1.0
 remote-googleanalytics = https://github.com/ckan/ckanext-googleanalytics.git tag v2.4.0
 remote-harvest = https://github.com/ckan/ckanext-harvest.git tag v1.5.6
 remote-hierarchy = https://github.com/ckan/ckanext-hierarchy.git tag v1.2.1
-remote-let-me-in = https://github.com/mutantsan/ckanext-let-me-in tag v1.0.1
+remote-let-me-in = https://github.com/DataShades/ckanext-let-me-in tag v1.0.1
 remote-officedocs = https://github.com/jqnatividad/ckanext-officedocs tag v1.1.0
 remote-or-facet = https://github.com/DataShades/ckanext-or_facet tag v0.1.1
 remote-pdfview = https://github.com/ckan/ckanext-pdfview.git tag 0.0.8
-remote-pygments = https://github.com/mutantsan/ckanext-pygments commit f4287bb
+remote-pygments = https://github.com/DataShades/ckanext-pygments commit f4287bb
 remote-resource-indexer = https://github.com/DataShades/ckanext-resource_indexer.git tag v0.4.1
 remote-saml = https://github.com/DataShades/ckanext-saml.git tag v0.3.3
 remote-scheming = https://github.com/ckan/ckanext-scheming tag release-3.0.0
@@ -98,7 +98,7 @@ remote-search-tweaks = https://github.com/dataShades/ckanext-search-tweaks tag v
 remote-spatial = https://github.com/ckan/ckanext-spatial tag v2.1.1
 remote-syndicate = https://github.com/DataShades/ckanext-syndicate tag v2.2.2
 remote-toolbelt = https://github.com/DataShades/ckanext-toolbelt.git tag v0.4.24
-remote-unfold = https://github.com/mutantsan/ckanext-unfold.git tag v1.0.2
+remote-unfold = https://github.com/DataShades/ckanext-unfold.git tag v1.0.2
 remote-vip-portal = https://github.com/DataShades/ckanext-vip-portal.git tag v0.2.5a1
 remote-xloader = https://github.com/ckan/ckanext-xloader.git tag 1.0.1
 

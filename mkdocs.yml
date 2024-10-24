@@ -1,7 +1,7 @@
 site_name: ckanext-bulk
 site_url: https://Link Digital.github.io/ckanext-bulk/
 
-repo_url:  https://github.com/Link Digital/ckanext-bulk
+repo_url:  https://github.com/DataShades/ckanext-bulk
 
 markdown_extensions:
   - pymdownx.snippets
