@@ -27,11 +27,15 @@ def bulk_update_entity(context: Context, data_dict: dict[str, Any]):
             result = entity_manager.update_entity(
                 data_dict["entity_id"], data_dict["update_on"]
             )
+        except tk.ObjectNotFound:
+            error = tk._("Entity not found")
         except tk.ValidationError as e:
             error = str(e.error_dict)
     elif data_dict["action"] == "delete":
         try:
             result = entity_manager.delete_entity(data_dict["entity_id"])
+        except tk.ObjectNotFound:
+            error = tk._("Entity not found")
         except tk.ValidationError as e:
             error = str(e.error_dict)
     else:
