@@ -50,6 +50,7 @@ class CustomBulk(p.SingletonPlugin):
         # Register your custom entity manager
         entity_managers[CustomDatasetEntityManager.entity_type] = CustomDatasetEntityManager
         return entity_managers
+```
 
 The interface allows you to:
 1. Create custom entity managers by extending base managers (`DatasetEntityManager`, `GroupEntityManager`, etc.) or creating your own.
