@@ -1,4 +1,4 @@
-[![Tests](https://github.com/DataShades/ckanext-bulk/workflows/tests.yml/badge.svg)](https://github.com/DataShades/ckanext-bulk/actions/workflows/test.yml)
+[![Tests](https://github.com/DataShades/ckanext-bulk/actions/workflows/test.yml/badge.svg)](https://github.com/DataShades/ckanext-bulk/actions/workflows/test.yml)
 
 # ckanext-bulk
 
