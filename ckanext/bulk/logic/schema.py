@@ -5,7 +5,7 @@ from ckan import types
 from ckan.logic.schema import validator_args
 
 from ckanext.bulk import const
-from ckanext.bulk.entity_manager import get_entity_managers
+from ckanext.bulk.utils import get_entity_managers
 
 
 @validator_args

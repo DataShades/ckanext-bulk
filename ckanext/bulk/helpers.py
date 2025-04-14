@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ckanext.bulk import const
-from ckanext.bulk.entity_manager import get_entity_managers
+from ckanext.bulk.utils import get_entity_managers
 
 
 def bulk_action_options() -> list[dict[str, str]]:
@@ -26,5 +26,10 @@ def bulk_operator_options() -> list[dict[str, str]]:
 
 def bulk_entity_options() -> list[dict[str, str]]:
     return [
-        {"value": v.entity_type, "text": k} for k, v in get_entity_managers().items()
+        {"value": v.entity_type, "text": _format_entity_type_for_display(k)}
+        for k, v in get_entity_managers().items()
     ]
+
+
+def _format_entity_type_for_display(entity_type: str) -> str:
+    return entity_type.title().replace("_", " ")

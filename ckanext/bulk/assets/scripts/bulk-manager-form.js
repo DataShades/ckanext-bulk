@@ -250,7 +250,7 @@ ckan.module("bulk-manager-form", function () {
                     }
 
                     this.bulkResultContainer.html($(`
-                        <p>Showing first ${this.options.resultMaxEntries} entities</p>
+                        <p>Only the first ${this.options.resultMaxEntries} entities will be shown</p>
                         <pre class='language-javascript'>
                             ${JSON.stringify(this._limitResultEntries(data.result.entities), null, 2)}
                         </pre>

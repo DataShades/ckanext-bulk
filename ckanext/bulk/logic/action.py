@@ -8,7 +8,7 @@ import ckan.plugins.toolkit as tk
 from ckan.logic import validate
 from ckan.types import Context
 
-from ckanext.bulk.entity_manager import get_entity_manager
+from ckanext.bulk.utils import get_entity_manager
 
 from . import schema
 

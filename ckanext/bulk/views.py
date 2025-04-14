@@ -35,16 +35,12 @@ def create_update_item() -> str:
 
 
 class BulkManagerView(MethodView):
-    template = "bulk/manager.html"
-
     def get(self):
         tk.check_access("bulk_manager", {})
 
-        return tk.render(self.template, {"data": {}, "errors": {}})
+        return tk.render("bulk/manager.html", {"data": {}, "errors": {}})
 
     def post(self):
-        # params = parse_params(tk.request.form)
-
         return tk.redirect_to("bulk.manager")
 
 
