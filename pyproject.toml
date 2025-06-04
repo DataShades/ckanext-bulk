@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ckanext-bulk"
-version = "0.3.0"
+version = "0.4.0"
 description = "Bulk update for CKAN datasets/resources"
 authors = [
     {name = "DataShades", email = "datashades@linkdigital.com.au"},
@@ -151,6 +151,13 @@ section-order = [
 ckan = ["ckan"]
 ckanext = ["ckanext"]
 self = ["ckanext.bulk"]
+
+[tool.isort]
+known_ckan = "ckan"
+known_ckanext = "ckanext"
+known_self = "ckanext.bulk"
+sections = "FUTURE,STDLIB,FIRSTPARTY,THIRDPARTY,CKAN,CKANEXT,SELF,LOCALFOLDER"
+profile = "black"
 
 [tool.pytest.ini_options]
 addopts = "--ckan-ini test.ini -m 'not benchmark'"

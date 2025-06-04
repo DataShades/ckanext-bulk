@@ -44,6 +44,11 @@ class BulkManagerView(MethodView):
         return tk.redirect_to("bulk.manager")
 
 
+# class ExportCSVView(MethodView):
+#     def get(self, ):
+#         return tk.render("bulk/export_csv.html", {"data": {}, "errors": {}})
+
+
 bp.add_url_rule("/manager", view_func=BulkManagerView.as_view("manager"))
 bp.add_url_rule("/htmx/create_filter_item", view_func=create_filter_item)
 bp.add_url_rule("/htmx/create_update_item", view_func=create_update_item)

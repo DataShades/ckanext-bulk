@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 2025-06-04
+
+### 🚀 Features
+
+- Add csv export for search result and logs
+
 ## [0.3.0] - 2025-04-14
 
 ### 🚀 Features

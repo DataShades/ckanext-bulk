@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import uuid
+
 from ckanext.bulk import const
 from ckanext.bulk.utils import get_entity_managers
 
@@ -26,10 +28,10 @@ def bulk_operator_options() -> list[dict[str, str]]:
 
 def bulk_entity_options() -> list[dict[str, str]]:
     return [
-        {"value": v.entity_type, "text": _format_entity_type_for_display(k)}
+        {"value": v.entity_type, "text": k.title().replace("_", " ")}
         for k, v in get_entity_managers().items()
     ]
 
 
-def _format_entity_type_for_display(entity_type: str) -> str:
-    return entity_type.title().replace("_", " ")
+def bulk_generate_form_id() -> str:
+    return str(uuid.uuid4())

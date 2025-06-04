@@ -60,4 +60,6 @@
     <div class="form-actions">
         <button type="button" class="btn btn-primary bulk-submit-form-btn">{{ _("Submit") }}</button>
     </div>
+
+    <input id="bulk_form_id" type="hidden" name="bulk_form_id" value="{{ h.bulk_generate_form_id() }}">
 </form>

@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 import ckan.plugins.toolkit as tk
 
 from ckanext.bulk import const
 from ckanext.bulk.entity_managers import base
+
+log = logging.getLogger(__name__)
 
 
 class DatasetEntityManager(base.EntityManager):
@@ -78,6 +81,8 @@ class DatasetEntityManager(base.EntityManager):
 
     @classmethod
     def _fetch_search_results(cls, query: str) -> list[dict[str, Any]]:
+        log.debug(f"Bulk. Performing search with query: {query} for {cls.entity_type}")
+
         rows = 1000
         start = 0
         results = []
