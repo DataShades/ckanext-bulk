@@ -12,6 +12,9 @@ ckan.module("bulk-manager-form", function () {
             infoBlock: ".bulk-info",
             bulkResultContainer: "#bulk-result-container",
             bulkLogsContainer: "#bulk-logs-container",
+            bulkFormIdField: "#bulk_form_id",
+            exportResultBtn: "#export-result-btn",
+            exportLogsBtn: "#export-logs-btn",
         },
         htmx: {
             addFilter: "/bulk/htmx/create_filter_item",
@@ -35,11 +38,16 @@ ckan.module("bulk-manager-form", function () {
             this.infoBlock = $(this.const.infoBlock);
             this.bulkResultContainer = $(this.const.bulkResultContainer);
             this.bulkLogsContainer = $(this.const.bulkLogsContainer);
+            this.bulkFormIdField = $(this.const.bulkFormIdField);
+            this.exportResultBtn = $(this.const.exportResultBtn);
+            this.exportLogsBtn = $(this.const.exportLogsBtn);
 
             this.actionSelect.on("change", this._onActionSelectChange);
             this.entitySelect.on("change", this._onEntitySelectChange);
             this.submitBtn.on("click", this._onSubmitBtnClick);
             this.managerForm.on("change", this._onFormChange);
+            this.exportResultBtn.on("click", this._onExportResultBtnClick);
+            this.exportLogsBtn.on("click", this._onExportLogsBtnClick);
 
             window.onbeforeunload = function (_) {
                 return "Are you sure you want to leave this page? The bulk action is in progress.";
@@ -213,6 +221,7 @@ ckan.module("bulk-manager-form", function () {
                 action: this.actionSelect.val(),
                 filters: this._getFilters(),
                 global_operator: this.globalOperator.is(":checked") ? "AND" : "OR",
+                bulk_form_id: this.bulkFormIdField.val(),
             }
 
             this._toggleLoadSpinner(true);
@@ -305,29 +314,12 @@ ckan.module("bulk-manager-form", function () {
         /**
          * Limit the number of entries in the logs to avoid performance issues.
          *
-         * Also remove some fields that are not needed for the user.
-         *
          * @param {Array<Object>} logs
          *
          * @returns {Array<Object>}
          */
         _limitLogsEntries: function (logs) {
-            logs = logs.slice(logs.length - this.options.logsMaxEntries, logs.length);
-
-            logs.forEach(log => {
-                if (!log.result) {
-                    return;
-                }
-
-                delete log.result.resources;
-                delete log.result.organization;
-                delete log.result.groups;
-
-                delete log.result.relationships_as_subject,
-                    delete log.result.relationships_as_object;
-            });
-
-            return logs;
+            return logs.slice(logs.length - this.options.logsMaxEntries, logs.length);
         },
 
         _initFieldSelectors: function (selectItems, reinit = false) {
@@ -383,6 +375,7 @@ ckan.module("bulk-manager-form", function () {
             const entity_type = this.entitySelect.val();
             const action = this.actionSelect.val();
             const update_on = this._getUpdateOn();
+            const bulk_form_id = this.bulkFormIdField.val();
 
             if (!this.bulkEntitiesToUpdate.length) {
                 return this.toast.fire({
@@ -404,7 +397,7 @@ ckan.module("bulk-manager-form", function () {
                 const entity = this.bulkEntitiesToUpdate[i];
 
                 try {
-                    await this._callUpdateEntity(entity, entity_type, update_on, action);
+                    await this._callUpdateEntity(entity, entity_type, update_on, action, bulk_form_id);
                     this.bulkProgressBar.animate(
                         this.bulkProgressBar.value() + this.bulkProgressBarPercent
                     );
@@ -443,13 +436,14 @@ ckan.module("bulk-manager-form", function () {
             return bulkProgressBar;
         },
 
-        _callUpdateEntity: function (entity, entity_type, update_on, action) {
+        _callUpdateEntity: function (entity, entity_type, update_on, action, bulk_form_id) {
             return new Promise((done, fail) => {
                 this.sandbox.client.call("POST", "bulk_update_entity", {
                     entity_type: entity_type,
                     entity_id: entity.id,
                     update_on: update_on,
                     action: action,
+                    bulk_form_id: bulk_form_id,
                 }, (resp) => {
                     this.bulkLogs.push(resp.result);
 
@@ -458,6 +452,55 @@ ckan.module("bulk-manager-form", function () {
                     fail(resp)
                 });
             });
+        },
+
+        _onExportResultBtnClick: function (e) {
+            this._exportAsCSV("result");
+        },
+
+        _onExportLogsBtnClick: function (e) {
+            this._exportAsCSV("logs");
+        },
+
+        _exportAsCSV: function (type) {
+            const bulk_form_id = this.bulkFormIdField.val();
+
+            this.sandbox.client.call("POST", "bulk_export", {
+                bulk_form_id: bulk_form_id,
+                type: type,
+            }, (data) => {
+                if (!data.result || !data.result.length) {
+                    return this.toast.fire({
+                        icon: "error",
+                        title: `No ${type} found`
+                    });
+                }
+
+                const csv = this._convertToCSV(data.result);
+                this._downloadCSV(csv, 'data.csv');
+            });
+        },
+
+        _convertToCSV: function (data) {
+            const header = Object.keys(data[0]);
+            const rows = data.map(row => header.map(
+                field => JSON.stringify(row[field], this._replacer)).join(',')
+            );
+            return [header.join(','), ...rows].join('\r\n');
+        },
+
+        _replacer: function (key, value) {
+            return value === null ? '' : value;
+        },
+
+        _downloadCSV: function (csv, filename) {
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
         }
     }
 })

@@ -22,9 +22,9 @@ from ckanext.bulk.entity_managers import base, DatasetEntityManager
 
 class CustomDatasetEntityManager(DatasetEntityManager):
     """Custom implementation of the DatasetEntityManager."""
-    
+
     entity_type = "dataset"
-    
+
     @classmethod
     def get_fields(cls) -> list[base.FieldItem]:
         # Override to add custom fields
@@ -33,7 +33,7 @@ class CustomDatasetEntityManager(DatasetEntityManager):
             base.FieldItem(value="custom_field", text="Custom Field")
         ])
         return fields
-    
+
     @classmethod
     def search_entities_by_filters(
         cls, filters: list[base.FilterItem], global_operator: str = const.GLOBAL_AND
@@ -43,7 +43,7 @@ class CustomDatasetEntityManager(DatasetEntityManager):
 
 class CustomBulk(p.SingletonPlugin):
     p.implements(IBulk, inherit=True)
-    
+
     def register_entity_manager(
         self, entity_managers: dict[str, type[base.EntityManager]]
     ):
@@ -62,14 +62,44 @@ Your entity manager should implement these key methods:
 - `update_entity()`: Handles entity updates
 - `delete_entity()`: Handles entity deletion
 
+## CSV export
+
+The extension provides a way to export data to CSV.
+
+You can implement the `IBulk` interface and override the `prepare_csv_data()` method to prepare the data for export.
+
+> [!IMPORTANT]
+> Ensure, that your extension is loaded before the `bulk` extension, as we call the first implementation of the method, to allow plugins to override the default implementation.
+
+The method should return a list of dictionaries, the keys will be used as a header in the CSV file.
+
+Data for search results and logs are stored in redis, and expire after 1 hour. This method will be called before the data is stored in redis, so we can reduce the amount of data to store in redis.
+
+The `export_type` parameter can be `"result"` or `"logs"`.
+
+Example of how to override the `prepare_csv_data()` method:
+
+```python
+class CustomBulk(p.SingletonPlugin):
+    p.implements(IBulk, inherit=True)
+
+    def prepare_csv_data(
+        self,
+        data: list[dict[str, Any]],
+        export_type: str,
+        entity_type: str | None = None,
+    ) -> list[dict[str, Any]]:
+        # Implement custom logic to prepare the data for export
+        return data
+```
 
 ## Requirements
 
 Compatibility with core CKAN versions:
 
 | CKAN version | Compatible? |
-|--------------|-------------|
+| ------------ | ----------- |
 | 2.9          | no          |
 | 2.10         | yes         |
 | 2.11         | yes         |
-| master       | yes         |
+| master       | not tested  |

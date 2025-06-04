@@ -22,8 +22,14 @@ class GroupEntityManager(base.EntityManager):
         if fields := cls.get_fields_from_redis():
             return fields
 
-        item_list: list[dict[str, Any]] = tk.get_action(cls.show_action)(
-            {"ignore_auth": True}, {"all_fields": True, "rows": 1}
+        item_list: list[dict[str, Any]] = tk.get_action(cls.list_action)(
+            {"ignore_auth": True},
+            {
+                "all_fields": True,
+                "include_extras": True,
+                "limit": 1,
+                "include_dataset_count": False,
+            },
         )
 
         if not item_list:

@@ -1,5 +1,11 @@
 from __future__ import annotations
 
+from typing import Any
+
+from cachelib.redis import RedisCache
+from redis.connection import parse_url
+
+import ckan.plugins.toolkit as tk
 from ckan import plugins as p
 
 from ckanext.bulk.entity_managers import (
@@ -53,3 +59,39 @@ def get_entity_manager(entity_type: str) -> type[base.EntityManager]:
         return manager
 
     raise base.EntityMissingError(entity_type)
+
+
+def store_data(key: str, data: Any, ttl: int = 3600) -> None:
+    """Store result/logs data in redis.
+
+    Args:
+        key: The key to store the data in redis.
+        data: The data to store in redis.
+        ttl: The time to live for the data in redis.
+    """
+    parsed_url = parse_url(tk.config["ckan.redis.url"])
+    cache = RedisCache(
+        host=parsed_url["host"],
+        port=parsed_url["port"],
+        password=parsed_url.get("password", ""),
+        default_timeout=ttl,
+    )
+    cache.set(key, data)
+
+
+def get_data(key: str) -> Any | None:
+    """Get data from redis.
+
+    Args:
+        key: The key to get the data from redis.
+
+    Returns:
+        The data stored in redis for the given key, or None if not found.
+    """
+    parsed_url = parse_url(tk.config["ckan.redis.url"])
+    cache = RedisCache(
+        host=parsed_url["host"],
+        port=parsed_url["port"],
+        password=parsed_url.get("password", ""),
+    )
+    return cache.get(key)
