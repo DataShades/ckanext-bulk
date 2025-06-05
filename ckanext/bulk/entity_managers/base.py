@@ -5,6 +5,7 @@ from abc import abstractmethod
 from typing import Any, TypedDict
 
 import ckan.plugins.toolkit as tk
+from ckan.lib.navl.dictization_functions import DictizationError
 from ckan.lib.redis import connect_to_redis
 
 from ckanext.bulk import const
@@ -114,13 +115,18 @@ class EntityManager:
         if not entity:
             raise tk.ObjectNotFound(f"Entity <{entity_id}> not found")
 
-        return tk.get_action(cls.patch_action)(
-            {"ignore_auth": True},
-            {
-                "id": entity_id,
-                **cls.update_items_to_dict(update_items),
-            },
-        )
+        try:
+            result = tk.get_action(cls.patch_action)(
+                {"ignore_auth": True},
+                {
+                    "id": entity_id,
+                    **cls.update_items_to_dict(update_items),
+                    },
+                )
+        except DictizationError as e:
+            raise tk.ValidationError(e.error or "Dictization error")
+
+        return result
 
     @classmethod
     def update_items_to_dict(cls, update_items: list[UpdateItem]) -> dict[str, Any]:

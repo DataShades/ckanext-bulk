@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ckanext-bulk"
-version = "0.4.0"
+version = "0.4.1"
 description = "Bulk update for CKAN datasets/resources"
 authors = [
     {name = "DataShades", email = "datashades@linkdigital.com.au"},
