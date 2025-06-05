@@ -201,7 +201,8 @@ ckan.module("bulk-manager-form", function () {
                 const field = $(el).find("#update_field").val();
                 const value = $(el).find("#update_value").val();
 
-                if (field && value) {
+                // allow null value so we can empty the field
+                if (field) {
                     updateOn.push({ field, value });
                 }
             });
@@ -381,13 +382,6 @@ ckan.module("bulk-manager-form", function () {
                 return this.toast.fire({
                     icon: "error",
                     title: "Please, check the filters first"
-                });
-            }
-
-            if (this.updateToBlock.is(":visible") && !update_on.length) {
-                return this.toast.fire({
-                    icon: "error",
-                    title: "Please, fill the update fields"
                 });
             }
 

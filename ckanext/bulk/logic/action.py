@@ -55,9 +55,6 @@ def bulk_update_entity(context: Context, data_dict: dict[str, Any]):
 
     _cache_logs(form_id, copy.deepcopy(result))
 
-    if error:
-        result["error"] = error
-
     return result
 
 

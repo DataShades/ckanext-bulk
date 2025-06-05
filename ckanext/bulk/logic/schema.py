@@ -61,6 +61,7 @@ def bulk_update_entity(
     not_empty: types.Validator,
     unicode_safe: types.Validator,
     one_of: types.Validator,
+    default: types.Validator,
 ) -> types.Schema:
     entity_types = [v.entity_type for v in get_entity_managers().values()]
     actions = [opt["value"] for opt in tk.h.bulk_action_options()]
@@ -71,7 +72,7 @@ def bulk_update_entity(
         "entity_id": [not_empty, unicode_safe],
         "update_on": {
             "field": [not_empty, unicode_safe],
-            "value": [not_empty, unicode_safe],
+            "value": [default(""), unicode_safe],  # type: ignore
         },
         "bulk_form_id": [not_empty, unicode_safe],
     }
